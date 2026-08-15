@@ -1,0 +1,2599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Farm Ledger — Livestock Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --parchment: #F1ECDC;
+    --parchment-alt: #E8E0C8;
+    --ink: #232B22;
+    --ink-soft: #5B6355;
+    --primary: #2F4A38;
+    --primary-dark: #1E3226;
+    --accent: #C98A2C;
+    --accent-soft: #E8C77E;
+    --accent-dark: #9C6A1F;
+    --alert: #A6432F;
+    --alert-soft: #F0D9CF;
+    --good: #3F7A56;
+    --good-soft: #DCEBE1;
+    --warn: #B8790F;
+    --warn-soft: #F5E3C2;
+    --border: #CBB78E;
+    --rustic-olive: #6F7D3C;
+    --rustic-olive-dark: #58642F;
+    --rustic-soil: #7A5230;
+    --rustic-soil-dark: #603F26;
+  }
+  * { box-sizing: border-box; }
+  html { overflow-x: hidden; }
+  body {
+    margin: 0;
+    background: var(--parchment-alt);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, .font-display { font-family: 'Roboto Slab', serif; margin: 0; }
+  button, input, select, textarea { font-family: inherit; }
+  button { cursor: pointer; }
+  p, span, td, th, li { overflow-wrap: break-word; word-break: break-word; }
+  .content-panel { background: var(--parchment); padding: 24px 20px 60px; }
+  @media (min-width: 760px) {
+    .content-panel {
+      background: var(--parchment);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 34px rgba(35,43,34,0.10);
+      margin-top: 22px;
+      margin-bottom: 22px;
+      padding: 32px 40px 60px;
+    }
+  }
+  .eyebrow { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-dark); font-weight: 600; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 3px rgba(35,43,34,0.05); }
+  .card-flat { background: rgba(255,255,255,0.55); border: 1px solid var(--border); border-radius: 12px; }
+  .ear-tag {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px 4px 22px;
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .ear-tag::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.55;
+  }
+  .tag-neutral { background: rgba(232,199,126,0.4); color: var(--accent-dark); border: 1px solid rgba(201,138,44,0.35); }
+  .tag-healthy { background: rgba(47,74,56,0.1); color: var(--primary); border: 1px solid rgba(47,74,56,0.3); }
+  .tag-attention { background: var(--alert-soft); color: var(--alert); border: 1px solid rgba(166,67,47,0.4); }
+  .tag-sold { background: rgba(35,43,34,0.05); color: var(--ink-soft); border: 1px solid var(--border); }
+  .tag-deceased { background: rgba(35,43,34,0.05); color: var(--ink-soft); border: 1px solid var(--border); }
+  .tag-compliant { background: var(--good-soft); color: var(--good); border: 1px solid rgba(63,122,86,0.35); }
+  .tag-due { background: var(--warn-soft); color: var(--warn); border: 1px solid rgba(184,121,15,0.35); }
+  .tag-overdue { background: var(--alert-soft); color: var(--alert); border: 1px solid rgba(166,67,47,0.4); }
+  .tag-open { background: var(--warn-soft); color: var(--warn); border: 1px solid rgba(184,121,15,0.35); }
+  .tag-resolved { background: var(--good-soft); color: var(--good); border: 1px solid rgba(63,122,86,0.35); }
+  input, select, textarea {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    padding: 10px 14px;
+    color: var(--ink);
+    outline: none;
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  input:focus, select:focus, textarea:focus, button:focus-visible { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+  input::placeholder, textarea::placeholder { color: rgba(91,99,85,0.55); }
+  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 11px 18px; font-weight: 500; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-secondary { background: var(--primary); color: var(--parchment); border: none; border-radius: 8px; padding: 11px 18px; font-weight: 500; }
+  .btn-secondary:hover { background: var(--primary-dark); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 11px 18px; font-weight: 500; }
+  .btn-outline:hover { background: rgba(255,255,255,0.6); }
+  button { transition: box-shadow .15s ease, transform .15s ease, filter .15s ease, background-color .15s ease; }
+  .tile-lift:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(35,43,34,0.22); filter: brightness(1.03); }
+  .btn-primary:hover, .btn-secondary:hover, .btn-quick:hover { transform: translateY(-1px); }
+  .btn-quick { color: #fff; border: none; border-radius: 8px; padding: 9px 14px; font-weight: 500; font-size: 13px; }
+  .btn-quick-issue { background: var(--alert); }
+  .btn-quick-issue:hover { background: #8A3626; }
+  .btn-quick-event { background: var(--rustic-olive); }
+  .btn-quick-event:hover { background: var(--rustic-olive-dark); }
+  .btn-quick-inspection { background: var(--accent); }
+  .btn-quick-inspection:hover { background: var(--accent-dark); }
+  .btn-quick-transaction { background: var(--rustic-soil); }
+  .btn-quick-transaction:hover { background: var(--rustic-soil-dark); }
+  .btn-danger-text { background: none; border: none; color: var(--alert); font-size: 13px; font-weight: 500; padding: 4px 2px; }
+  .btn-link-text { background: none; border: none; color: var(--primary); font-size: 13px; font-weight: 500; padding: 4px 2px; }
+  .row-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+  .topnav-link { padding: 9px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; border: none; background: transparent; color: var(--parchment); opacity: 0.85; white-space: nowrap; text-align: left; }
+  .topnav-link.active { background: var(--parchment); color: var(--primary); opacity: 1; }
+  .checklist-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+  .checklist-row:first-child { border-top: none; }
+  .checklist-row input[type=checkbox] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--primary); }
+  .heat-table { border-collapse: collapse; width: 100%; min-width: 420px; }
+  .heat-table th { text-align: center; padding: 6px 10px; font-size: 12px; color: var(--ink-soft); font-weight: 600; }
+  .heat-table td { padding: 0; text-align: center; }
+  .heat-cell { margin: 3px; padding: 10px 4px; border-radius: 6px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; }
+  #print-root { display: none; }
+  @media print {
+    body.printing > *:not(#print-root) { display: none !important; }
+    body.printing #print-root { display: block !important; position: static; padding: 24px; background: #fff; color: #111; }
+    body.printing #print-root table { width: 100%; border-collapse: collapse; }
+    body.printing #print-root th, body.printing #print-root td { border-bottom: 1px solid #ccc; padding: 6px 8px; font-size: 12px; text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+(function() {
+  var SPECIES = [
+    { id: 'cattle', label: 'Cattle', icon: '🐄', tracking: 'individual', unit: 'head', prodLabel: 'Milk (L/day)', prodKey: 'milkL', color: '#6B4A32' },
+    { id: 'sheep', label: 'Sheep', icon: '🐑', tracking: 'individual', unit: 'head', prodLabel: 'Wool (kg/shear)', prodKey: 'woolKg', color: '#7C6A46' },
+    { id: 'goats', label: 'Goats', icon: '🐐', tracking: 'individual', unit: 'head', prodLabel: 'Milk (L/day)', prodKey: 'milkL', color: '#9C6A1F' },
+    { id: 'pigs', label: 'Pigs', icon: '🐖', tracking: 'individual', unit: 'head', prodLabel: 'Last litter size', prodKey: 'litterSize', color: '#A85C72' },
+    { id: 'chickens', label: 'Chickens', icon: '🐔', tracking: 'flock', unit: 'birds', prodLabel: 'Eggs / day', prodKey: 'eggsPerDay', color: '#C98A2C' },
+    { id: 'ducks', label: 'Ducks', icon: '🦆', tracking: 'flock', unit: 'birds', prodLabel: 'Eggs / day', prodKey: 'eggsPerDay', color: '#3E7C8C' }
+  ];
+
+  var CROPS = [
+    { id: 'vegetables', label: 'Vegetables', icon: '🥬', tracking: 'crop', unit: 'beds', prodLabel: 'Last yield (kg)', prodKey: 'yieldKg', color: '#3F7A56' },
+    { id: 'maize', label: 'Maize', icon: '🌽', tracking: 'crop', unit: 'hectares', prodLabel: 'Last yield (kg)', prodKey: 'yieldKg', color: '#B8860B' },
+    { id: 'fruit', label: 'Fruit trees', icon: '🍎', tracking: 'crop', unit: 'trees', prodLabel: 'Last yield (kg)', prodKey: 'yieldKg', color: '#A6432F' }
+  ];
+
+  var INSPECTION_TEMPLATE = [
+    'Water troughs clean and functioning',
+    'Fencing and gates secure',
+    'Feed and mineral stock adequate',
+    'General body condition and welfare check',
+    'Mortality or losses recorded and investigated',
+    'Medicine and vaccine records up to date',
+    'Predator or pest signs checked',
+    'Fire and emergency equipment checked'
+  ];
+
+  var SECURITY_TEMPLATE = [
+    'Perimeter fencing walked and checked for breaks or weak sections',
+    'Electric fence energiser powered on and voltage tested',
+    'All gates closing properly and locking mechanisms working',
+    'Padlocks, chains and keys accounted for, no signs of tampering',
+    'Security cameras powered on, recording and lenses unobstructed',
+    'Alarm system armed overnight and test-triggered',
+    'Yard and building lighting working after dark',
+    'No signs of forced entry, cut fencing or trespassing',
+    'Vehicles, equipment and tools locked away or accounted for',
+    'Outstanding repairs from last check followed up'
+  ];
+
+  var ALL_SPECIES_IDS = SPECIES.map(function(s) { return s.id; });
+  var DEFAULT_SPECIES_IDS = ALL_SPECIES_IDS.concat(['vegetables']);
+  var STORAGE_KEY = 'farm-ledger-state-v1';
+
+  function speciesById(id) { return SPECIES.concat(CROPS).filter(function(s){ return s.id === id; })[0]; }
+  function fmtR(n) { return (n < 0 ? '-R' : 'R') + Math.round(Math.abs(n)).toLocaleString(); }
+  function todayStr() { return new Date().toISOString().slice(0,10); }
+  function confirmDelete(label) { return window.confirm('Delete ' + label + '? This cannot be undone.'); }
+  function hexToRgb(hex) { hex = hex.replace('#',''); var n = parseInt(hex, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function heatBg(value, max, hex) {
+    var rgb = hexToRgb(hex);
+    var t = max > 0 ? Math.min(1, value / max) : 0;
+    var alpha = value > 0 ? (0.16 + 0.72 * t) : 0.06;
+    return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha.toFixed(2) + ')';
+  }
+  function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+
+  var state = {
+    farm: { farmName: 'Smart Design', ownerName: '', speciesIds: DEFAULT_SPECIES_IDS.slice() },
+    animals: [],
+    issues: [],
+    compliance: [],
+    inspections: [],
+    securityChecks: [],
+    workers: [],
+    contacts: [],
+    grazingLogs: [],
+    waterLogs: [],
+    loadSheddingLogs: [],
+    stockItems: [],
+    stockMoves: [],
+    farmFinance: [],
+    view: { page: 'dashboard' },
+    menuOpen: false,
+    counters: {},
+    uiTabs: { compliance: 'Outstanding', stock: 'Inventory', finance: 'Overview', issues: 'Open', insights: 'Activity', dashboardChart: 'Farm activity', records: 'Workers' },
+    meta: {}
+  };
+
+  function nextId(prefix) {
+    state.counters[prefix] = (state.counters[prefix] || 0) + 1;
+    return prefix.toUpperCase() + '-' + String(state.counters[prefix]).padStart(3, '0');
+  }
+
+  function seedData(speciesIds) {
+    // Clean demo build: no sample records — every list starts empty so a
+    // prospective client sees a genuine blank slate rather than fictional data.
+    return {
+      animals: [], issues: [], compliance: [], inspections: [], securityChecks: [],
+      stockItems: [], stockMoves: [], farmFinance: [],
+      workers: [], contacts: [], grazingLogs: [], waterLogs: [], loadSheddingLogs: []
+    };
+  }
+
+  // ---------- persistence ----------
+  function serializableState() {
+    return {
+      farm: state.farm, animals: state.animals, issues: state.issues, compliance: state.compliance,
+      inspections: state.inspections, securityChecks: state.securityChecks, stockItems: state.stockItems, stockMoves: state.stockMoves,
+      farmFinance: state.farmFinance, counters: state.counters, meta: state.meta,
+      workers: state.workers, contacts: state.contacts, grazingLogs: state.grazingLogs,
+      waterLogs: state.waterLogs, loadSheddingLogs: state.loadSheddingLogs
+    };
+  }
+
+  function hasStorage() { return typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function'; }
+
+  function ensureIndicator() {
+    var ind = document.getElementById('save-indicator');
+    if (!ind) {
+      ind = document.createElement('div');
+      ind.id = 'save-indicator';
+      ind.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:500;box-shadow:0 2px 10px rgba(35,43,34,0.18);z-index:80;transition:opacity .3s;font-family:"Work Sans",sans-serif;';
+      document.body.appendChild(ind);
+    }
+    return ind;
+  }
+
+  function setIndicator(status) {
+    var ind = ensureIndicator();
+    ind.style.opacity = '1';
+    if (status === 'loading') { ind.textContent = 'Loading your farm…'; ind.style.background = 'var(--parchment-alt)'; ind.style.color = 'var(--ink-soft)'; }
+    else if (status === 'saving') { ind.textContent = 'Saving…'; ind.style.background = 'var(--warn-soft)'; ind.style.color = 'var(--warn)'; }
+    else if (status === 'saved') { ind.textContent = '✓ Saved'; ind.style.background = 'var(--good-soft)'; ind.style.color = 'var(--good)'; setTimeout(function(){ ind.style.opacity = '0'; }, 1400); }
+    else if (status === 'offline') { ind.textContent = 'Session only — not saved to your account'; ind.style.background = 'var(--parchment-alt)'; ind.style.color = 'var(--ink-soft)'; setTimeout(function(){ ind.style.opacity = '0'; }, 2600); }
+    else { ind.textContent = 'Could not save — will retry'; ind.style.background = 'var(--alert-soft)'; ind.style.color = 'var(--alert)'; }
+  }
+
+  var saveTimer = null;
+  function scheduleSave() {
+    if (!hasStorage()) { setIndicator('offline'); return; }
+    setIndicator('saving');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function() {
+      window.storage.set(STORAGE_KEY, JSON.stringify(serializableState()), false).then(function(res) {
+        setIndicator(res ? 'saved' : 'error');
+      }).catch(function() { setIndicator('error'); });
+    }, 550);
+  }
+
+  // ---------- Live weather (Open-Meteo, no API key required) ----------
+  var weatherState = { status: 'idle', data: null, locationLabel: '' };
+
+  function weatherCodeInfo(code) {
+    var map = {
+      0: ['☀️', 'Clear'], 1: ['🌤️', 'Mostly clear'], 2: ['⛅', 'Partly cloudy'], 3: ['☁️', 'Overcast'],
+      45: ['🌫️', 'Fog'], 48: ['🌫️', 'Fog'],
+      51: ['🌦️', 'Light drizzle'], 53: ['🌦️', 'Drizzle'], 55: ['🌦️', 'Dense drizzle'],
+      61: ['🌧️', 'Light rain'], 63: ['🌧️', 'Rain'], 65: ['🌧️', 'Heavy rain'],
+      71: ['🌨️', 'Light snow'], 73: ['🌨️', 'Snow'], 75: ['❄️', 'Heavy snow'],
+      80: ['🌦️', 'Rain showers'], 81: ['🌦️', 'Rain showers'], 82: ['⛈️', 'Violent showers'],
+      95: ['⛈️', 'Thunderstorm']
+    };
+    return map[code] || ['🌡️', 'Weather'];
+  }
+
+  function fetchWeather() {
+    if (weatherState.status === 'loading') return;
+    weatherState.status = 'loading';
+    if (state.view.page === 'dashboard') render();
+
+    function runFetch(lat, lon, label) {
+      var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&forecast_days=3';
+      fetch(url).then(function(res) { return res.json(); }).then(function(data) {
+        if (!data || !data.daily) throw new Error('bad response');
+        weatherState.status = 'loaded';
+        weatherState.data = data;
+        weatherState.locationLabel = label;
+        if (state.view.page === 'dashboard') render();
+      }).catch(function() {
+        weatherState.status = 'error';
+        if (state.view.page === 'dashboard') render();
+      });
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(pos) { runFetch(pos.coords.latitude.toFixed(3), pos.coords.longitude.toFixed(3), 'Your location'); },
+        function() { runFetch(-29.8587, 31.0218, 'Durban, South Africa'); },
+        { timeout: 6000 }
+      );
+    } else {
+      runFetch(-29.8587, 31.0218, 'Durban, South Africa');
+    }
+  }
+
+  function renderWeatherStrip() {
+    var wrap = el('div', { style: 'display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:10px;background:var(--card-flat-bg, rgba(255,255,255,0.5));border:1px solid var(--border);margin-bottom:22px;overflow-x:auto;' });
+
+    if (weatherState.status === 'idle' || weatherState.status === 'loading') {
+      wrap.appendChild(el('span', { text: '🌤️', style: 'font-size:16px;flex-shrink:0;' }));
+      wrap.appendChild(el('span', { text: 'Fetching live forecast…', style: 'color:var(--ink-soft);font-size:12.5px;' }));
+      return wrap;
+    }
+    if (weatherState.status === 'error' || !weatherState.data) {
+      wrap.appendChild(el('span', { text: '🌤️', style: 'font-size:16px;flex-shrink:0;' }));
+      wrap.appendChild(el('span', { text: 'Couldn\u2019t load live weather.', style: 'color:var(--ink-soft);font-size:12.5px;flex:1;' }));
+      var retryBtn = el('button', { class: 'btn-link-text', text: 'Retry', style: 'font-size:12.5px;flex-shrink:0;' });
+      retryBtn.addEventListener('click', function() { fetchWeather(); });
+      wrap.appendChild(retryBtn);
+      return wrap;
+    }
+    var daily = weatherState.data.daily;
+    wrap.appendChild(el('span', { text: 'Weather', style: 'font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);font-weight:600;flex-shrink:0;' }));
+    daily.time.forEach(function(dateStr, i) {
+      var info = weatherCodeInfo(daily.weathercode[i]);
+      var d = new Date(dateStr + 'T00:00:00');
+      var label = i === 0 ? 'Today' : d.toLocaleDateString('en-ZA', { weekday: 'short' });
+      var item = el('div', { style: 'display:flex;align-items:center;gap:5px;flex-shrink:0;' });
+      item.appendChild(el('span', { text: info[0], style: 'font-size:14px;' }));
+      item.appendChild(el('span', { text: label, style: 'font-size:12px;color:var(--ink-soft);' }));
+      item.appendChild(el('span', { text: Math.round(daily.temperature_2m_max[i]) + '°/' + Math.round(daily.temperature_2m_min[i]) + '°', style: 'font-size:12.5px;font-weight:600;' }));
+      wrap.appendChild(item);
+      if (i < daily.time.length - 1) wrap.appendChild(el('span', { text: '·', style: 'color:var(--border);flex-shrink:0;' }));
+    });
+    if (weatherState.locationLabel) wrap.appendChild(el('span', { text: weatherState.locationLabel, style: 'font-size:11px;color:var(--ink-soft);margin-left:auto;flex-shrink:0;white-space:nowrap;' }));
+    return wrap;
+  }
+
+  function loadState() {
+    if (!hasStorage()) return Promise.resolve(false);
+    return window.storage.get(STORAGE_KEY, false).then(function(res) {
+      if (res && res.value) {
+        try {
+          var data = JSON.parse(res.value);
+          Object.assign(state, data);
+          return true;
+        } catch (e) { return false; }
+      }
+      return false;
+    }).catch(function() { return false; });
+  }
+
+  function el(tag, attrs, children) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    for (var k in attrs) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'html') e.innerHTML = attrs[k];
+      else if (k === 'style') e.setAttribute('style', attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    (children || []).forEach(function(c) { if (c) e.appendChild(c); });
+    return e;
+  }
+
+  function earTag(text, tone) { return el('span', { class: 'ear-tag tag-' + (tone || 'neutral'), text: text }); }
+
+  function navigate(view) { state.view = view; state.menuOpen = false; render(); }
+
+  function render() {
+    var root = document.getElementById('root');
+    root.innerHTML = '';
+    root.appendChild(renderApp());
+    scheduleSave();
+  }
+
+  function simpleTabBar(tabs, active, onSelect) {
+    var bar = el('div', { style: 'display:flex;gap:4px;border-bottom:1px solid var(--border);overflow-x:auto;margin-bottom:18px;' });
+    tabs.forEach(function(t) {
+      var isAct = t === active;
+      var b = el('button', { text: t, style: 'padding:10px 16px;font-size:14px;font-weight:500;white-space:nowrap;background:none;border:none;border-bottom:2px solid ' + (isAct ? 'var(--accent)' : 'transparent') + ';color:' + (isAct ? 'var(--ink)' : 'var(--ink-soft)') + ';margin-bottom:-1px;' });
+      b.addEventListener('click', function() { onSelect(t); });
+      bar.appendChild(b);
+    });
+    return bar;
+  }
+
+  // ---------- App shell with top nav ----------
+  function functionalNavItems() {
+    return [
+      { page: 'dashboard', label: 'Overview', icon: '⌂' },
+      { page: 'issues', label: 'Issues', icon: '⚑' },
+      { page: 'compliance', label: 'Compliance', icon: '◈' },
+      { page: 'inspections', label: 'Inspections', icon: '▤' },
+      { page: 'security', label: 'Security', icon: '🔒' },
+      { page: 'records', label: 'Farm records', icon: '📋' },
+      { page: 'stock', label: 'Stock', icon: '▣' },
+      { page: 'finance', label: 'Finances', icon: '⟠' },
+      { page: 'insights', label: 'Insights', icon: '▥' },
+      { page: 'reports', label: 'Reports', icon: '▦' },
+      { page: 'settings', label: 'Settings', icon: '⚙' }
+    ];
+  }
+
+  function renderApp() {
+    var shell = el('div', { style: 'min-height:100vh;display:flex;flex-direction:column;' });
+
+    var header = el('header', { style: 'background:var(--primary);color:var(--parchment);position:sticky;top:0;z-index:30;' });
+    var headerRow = el('div', { style: 'max-width:1160px;margin:0 auto;padding:14px 24px 12px;display:flex;align-items:center;gap:12px;' });
+
+    var brand = el('div', { style: 'display:flex;align-items:center;gap:12px;min-width:0;' });
+    var badge = el('div', { text: '🌾', style: 'width:40px;height:40px;flex-shrink:0;border-radius:50%;background:var(--parchment);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;' });
+    brand.appendChild(badge);
+    var brandText = el('div', { style: 'min-width:0;' });
+    brandText.appendChild(el('p', { class: 'font-display', text: state.farm.farmName, style: 'font-size:17px;font-weight:600;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' }));
+    brandText.appendChild(el('p', { text: 'Farm Management Dashboard', style: 'font-size:11px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;color:rgba(241,236,220,0.75);' }));
+    brand.appendChild(brandText);
+    headerRow.appendChild(brand);
+    header.appendChild(headerRow);
+
+    var navBar = el('div', { style: 'overflow-x:auto;padding:0 14px 12px;' });
+    var navInner = el('div', { style: 'max-width:1132px;margin:0 auto;display:flex;gap:6px;' });
+    functionalNavItems().forEach(function(item) {
+      var active = state.view.page === item.page;
+      var b = el('button', { style: 'flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;font-size:13px;font-weight:500;border:none;white-space:nowrap;background:' + (active ? 'var(--parchment)' : 'rgba(241,236,220,0.14)') + ';color:' + (active ? 'var(--primary)' : 'var(--parchment)') + ';' });
+      b.appendChild(el('span', { text: item.icon }));
+      b.appendChild(el('span', { text: item.label }));
+      b.addEventListener('click', function() { navigate({ page: item.page }); });
+      navInner.appendChild(b);
+    });
+    navBar.appendChild(navInner);
+    header.appendChild(navBar);
+
+    shell.appendChild(header);
+
+    var main = el('main', { style: 'flex:1;' });
+    var inner = el('div', { class: 'content-panel', style: 'max-width:1160px;margin:0 auto;' });
+
+    if (state.view.page === 'dashboard') inner.appendChild(renderDashboard());
+    else if (state.view.page === 'species') inner.appendChild(renderSpeciesPage());
+    else if (state.view.page === 'issues') inner.appendChild(renderIssuesPage());
+    else if (state.view.page === 'compliance') inner.appendChild(renderCompliancePage());
+    else if (state.view.page === 'inspections') inner.appendChild(renderInspectionsPage());
+    else if (state.view.page === 'security') inner.appendChild(renderSecurityPage());
+    else if (state.view.page === 'records') inner.appendChild(renderFarmRecordsPage());
+    else if (state.view.page === 'stock') inner.appendChild(renderStockPage());
+    else if (state.view.page === 'finance') inner.appendChild(renderFinancePage());
+    else if (state.view.page === 'insights') inner.appendChild(renderInsightsPage());
+    else if (state.view.page === 'reports') inner.appendChild(renderReportsPage());
+    else if (state.view.page === 'settings') inner.appendChild(renderSettingsPage());
+
+    main.appendChild(inner);
+    shell.appendChild(main);
+    return shell;
+  }
+
+  function pageHeader(eyebrow, title, desc) {
+    var h = el('div', { style: 'margin-bottom:22px;' });
+    if (eyebrow) h.appendChild(el('p', { class: 'eyebrow', text: eyebrow, style: 'margin-bottom:4px;' }));
+    h.appendChild(el('h2', { class: 'font-display', text: title, style: 'font-size:25px;font-weight:600;' }));
+    if (desc) h.appendChild(el('p', { text: desc, style: 'color:var(--ink-soft);font-size:14px;margin-top:6px;max-width:560px;' }));
+    return h;
+  }
+
+  function statCard(label, value, tone) {
+    var c = el('div', { class: 'card', style: 'padding:16px;' });
+    c.appendChild(el('p', { text: label, style: 'font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);margin-bottom:4px;' }));
+    c.appendChild(el('p', { class: 'font-display', text: String(value), style: 'font-size:24px;font-weight:600;color:' + (tone === 'alert' ? 'var(--alert)' : 'var(--ink)') }));
+    return c;
+  }
+
+  // ---------- Generic form modal ----------
+  function openFormModal(cfg) {
+    var overlay = el('div', { style: 'position:fixed;inset:0;background:rgba(35,43,34,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;' });
+    var modal = el('div', { class: 'card', style: 'width:100%;max-width:460px;padding:24px;max-height:88vh;overflow-y:auto;' });
+
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;' });
+    head.appendChild(el('h3', { class: 'font-display', text: cfg.title, style: 'font-size:19px;font-weight:600;' }));
+    var closeBtn = el('button', { text: '×', style: 'background:none;border:none;font-size:22px;line-height:1;color:var(--ink-soft);' });
+    closeBtn.addEventListener('click', function() { overlay.remove(); });
+    head.appendChild(closeBtn);
+    modal.appendChild(head);
+
+    var form = el('form', { style: 'display:flex;flex-direction:column;gap:14px;' });
+    var initial = cfg.initial || {};
+    var inputs = {};
+
+    cfg.fields.forEach(function(f) {
+      var field = el('div', {});
+      field.appendChild(el('label', { text: f.label, style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }));
+      var input;
+      if (f.type === 'select') {
+        input = el('select', {});
+        f.options.forEach(function(o) { input.appendChild(el('option', { value: o.value, text: o.label })); });
+        if (initial[f.key] != null) input.value = initial[f.key];
+      } else if (f.type === 'textarea') {
+        input = el('textarea', { placeholder: f.placeholder || '' });
+        input.value = initial[f.key] != null ? initial[f.key] : '';
+      } else {
+        input = el('input', { type: f.type || 'text', placeholder: f.placeholder || '' });
+        input.value = initial[f.key] != null ? initial[f.key] : '';
+      }
+      inputs[f.key] = input;
+      field.appendChild(input);
+      form.appendChild(field);
+    });
+
+    var btnRow = el('div', { style: 'display:flex;gap:10px;padding-top:6px;flex-wrap:wrap;' });
+    if (cfg.onDelete) {
+      var delBtn = el('button', { type: 'button', class: 'btn-outline', text: 'Delete', style: 'border-color:rgba(166,67,47,0.4);color:var(--alert);' });
+      delBtn.addEventListener('click', function() {
+        if (confirmDelete(cfg.deleteLabel || 'this record')) { overlay.remove(); cfg.onDelete(); }
+      });
+      btnRow.appendChild(delBtn);
+    }
+    var spacer = el('div', { style: 'flex:1;' });
+    btnRow.appendChild(spacer);
+    var cancelBtn = el('button', { type: 'button', class: 'btn-outline', text: 'Cancel' });
+    cancelBtn.addEventListener('click', function() { overlay.remove(); });
+    var saveBtn = el('button', { type: 'submit', class: 'btn-primary', text: 'Save' });
+    btnRow.appendChild(cancelBtn); btnRow.appendChild(saveBtn);
+    form.appendChild(btnRow);
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var values = {};
+      cfg.fields.forEach(function(f) {
+        var v = inputs[f.key].value;
+        values[f.key] = f.type === 'number' ? Number(v) || 0 : v;
+      });
+      if (cfg.validate) { var err = cfg.validate(values); if (err) { alert(err); return; } }
+      overlay.remove();
+      cfg.onSubmit(values);
+    });
+
+    modal.appendChild(form);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    inputs[cfg.fields[0].key].focus();
+  }
+
+  // ---------- Compliance status helper ----------
+  function effectiveComplianceStatus(c) {
+    var today = todayStr();
+    if (!c.dueDate) return c.status;
+    var diff = daysBetween(today, c.dueDate);
+    if (diff < 0) return 'overdue';
+    if (c.status === 'compliant') return 'compliant';
+    if (diff <= 14) return 'due';
+    return c.status;
+  }
+
+  // ---------- Generic list modal (used by insight chips) ----------
+  function openListModal(title, items) {
+    var overlay = el('div', { style: 'position:fixed;inset:0;background:rgba(35,43,34,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;' });
+    var modal = el('div', { class: 'card', style: 'width:100%;max-width:440px;padding:24px;max-height:88vh;overflow-y:auto;' });
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;' });
+    head.appendChild(el('h3', { class: 'font-display', text: title, style: 'font-size:19px;font-weight:600;' }));
+    var closeBtn = el('button', { text: '×', style: 'background:none;border:none;font-size:22px;color:var(--ink-soft);' });
+    closeBtn.addEventListener('click', function() { overlay.remove(); });
+    head.appendChild(closeBtn);
+    modal.appendChild(head);
+    var list = el('div', { class: 'card-flat' });
+    if (items.length === 0) {
+      list.appendChild(el('p', { text: 'Nothing here.', style: 'padding:16px;color:var(--ink-soft);font-size:14px;' }));
+    } else {
+      items.forEach(function(it, idx) {
+        var row = el('button', { class: 'row-link', style: 'width:100%;text-align:left;padding:13px 16px;background:none;border:none;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+        var left = el('div', {});
+        left.appendChild(el('p', { text: it.primary, style: 'font-size:14px;font-weight:500;' }));
+        if (it.secondary) left.appendChild(el('p', { text: it.secondary, style: 'font-size:12px;color:var(--ink-soft);' }));
+        row.appendChild(left);
+        if (it.tag) row.appendChild(earTag(it.tag.text, it.tag.tone));
+        row.addEventListener('click', function() { overlay.remove(); if (it.onClick) it.onClick(); });
+        list.appendChild(row);
+      });
+    }
+    modal.appendChild(list);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  }
+
+  // ---------- Quick animal event (for dashboard quick actions) ----------
+  function openQuickEventModal() {
+    if (state.animals.length === 0) { alert('Add an animal, flock, or crop plot first, then you can log an event for it.'); return; }
+    var overlay = el('div', { style: 'position:fixed;inset:0;background:rgba(35,43,34,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;' });
+    var modal = el('div', { class: 'card', style: 'width:100%;max-width:460px;padding:24px;max-height:88vh;overflow-y:auto;' });
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;' });
+    head.appendChild(el('h3', { class: 'font-display', text: 'Log an event', style: 'font-size:19px;font-weight:600;' }));
+    var closeBtn = el('button', { text: '×', style: 'background:none;border:none;font-size:22px;color:var(--ink-soft);' });
+    closeBtn.addEventListener('click', function() { overlay.remove(); });
+    head.appendChild(closeBtn);
+    modal.appendChild(head);
+
+    var form = el('form', { style: 'display:flex;flex-direction:column;gap:14px;' });
+
+    var speciesIdsWithAnimals = state.farm.speciesIds.filter(function(id) { return state.animals.some(function(a) { return a.speciesId === id; }); });
+    var speciesSelect = el('select', {});
+    speciesIdsWithAnimals.forEach(function(id) { speciesSelect.appendChild(el('option', { value: id, text: speciesById(id).label })); });
+    form.appendChild(el('div', {}, [el('label', { text: 'Species / crop', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), speciesSelect]));
+
+    var animalSelect = el('select', {});
+    function refreshAnimals() {
+      animalSelect.innerHTML = '';
+      state.animals.filter(function(a) { return a.speciesId === speciesSelect.value; }).forEach(function(a) {
+        animalSelect.appendChild(el('option', { value: a.id, text: a.name + ' (' + a.id + ')' }));
+      });
+    }
+
+    var typeSelect = el('select', {});
+    function refreshTypeOptions() {
+      var sp = speciesById(speciesSelect.value);
+      typeSelect.innerHTML = '';
+      var opts = (sp && sp.tracking === 'crop') ? [['care', 'Care / treatment'], ['harvest', 'Harvest']] : [['health', 'Health'], ['breeding', 'Breeding'], ['production', 'Production']];
+      opts.forEach(function(o) { typeSelect.appendChild(el('option', { value: o[0], text: o[1] })); });
+    }
+    speciesSelect.addEventListener('change', function() { refreshAnimals(); refreshTypeOptions(); });
+    refreshAnimals();
+    form.appendChild(el('div', {}, [el('label', { text: 'Animal / flock / plot', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), animalSelect]));
+
+    refreshTypeOptions();
+    form.appendChild(el('div', {}, [el('label', { text: 'Type', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), typeSelect]));
+
+    var dateInput = el('input', { type: 'date' }); dateInput.value = todayStr();
+    form.appendChild(el('div', {}, [el('label', { text: 'Date', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), dateInput]));
+
+    var noteInput = el('input', { placeholder: 'e.g. Vaccinated for lumpy skin disease' });
+    form.appendChild(el('div', {}, [el('label', { text: 'Note', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), noteInput]));
+
+    var btnRow = el('div', { style: 'display:flex;gap:10px;padding-top:6px;' });
+    btnRow.appendChild(el('div', { style: 'flex:1;' }));
+    var cancelBtn = el('button', { type: 'button', class: 'btn-outline', text: 'Cancel' });
+    cancelBtn.addEventListener('click', function() { overlay.remove(); });
+    var saveBtn = el('button', { type: 'submit', class: 'btn-primary', text: 'Log entry' });
+    btnRow.appendChild(cancelBtn); btnRow.appendChild(saveBtn);
+    form.appendChild(btnRow);
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!animalSelect.value) { alert('Pick an animal or flock first.'); return; }
+      if (!noteInput.value.trim()) { alert('Add a short note about what happened.'); return; }
+      var animal = state.animals.filter(function(a) { return a.id === animalSelect.value; })[0];
+      if (!animal) { overlay.remove(); return; }
+      animal.events.unshift({ id: nextId('evt'), date: dateInput.value || todayStr(), type: typeSelect.value, note: noteInput.value.trim() });
+      overlay.remove();
+      render();
+    });
+
+    modal.appendChild(form);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  }
+
+  // ---------- Insight chips (morning glance) ----------
+  function renderInsightChips() {
+    var chips = [];
+
+    var openIssuesList = state.issues.filter(function(i) { return i.status === 'open'; });
+    chips.push({
+      icon: '⚑', tone: openIssuesList.length ? 'alert' : 'good',
+      title: openIssuesList.length + ' open issue' + (openIssuesList.length === 1 ? '' : 's'),
+      sub: openIssuesList.length ? 'Needs a look' : 'All clear',
+      weight: openIssuesList.length ? 0 : 3,
+      onClick: function() { state.uiTabs.issues = 'Open'; navigate({ page: 'issues' }); }
+    });
+
+    var outstandingComp = state.compliance.filter(function(c) { var s = effectiveComplianceStatus(c); return s === 'overdue' || s === 'due'; });
+    var overdueComp = state.compliance.filter(function(c) { return effectiveComplianceStatus(c) === 'overdue'; });
+    chips.push({
+      icon: '◈', tone: overdueComp.length ? 'alert' : (outstandingComp.length ? 'warn' : 'good'),
+      title: outstandingComp.length + ' compliance item' + (outstandingComp.length === 1 ? '' : 's'),
+      sub: overdueComp.length ? overdueComp.length + ' overdue' : (outstandingComp.length ? 'Due soon' : 'Up to date'),
+      weight: overdueComp.length ? 0 : (outstandingComp.length ? 1 : 3),
+      onClick: function() { state.uiTabs.compliance = 'Outstanding'; navigate({ page: 'compliance' }); }
+    });
+
+    var flaggedAnimals = state.animals.filter(function(a) { return a.status === 'attention' || a.status === 'failed'; });
+    chips.push({
+      icon: '🩺', tone: flaggedAnimals.length ? 'alert' : 'good',
+      title: flaggedAnimals.length + ' record' + (flaggedAnimals.length === 1 ? '' : 's') + ' flagged',
+      sub: flaggedAnimals.length ? 'Needs a look' : 'All good',
+      weight: flaggedAnimals.length ? 0 : 3,
+      onClick: function() {
+        if (flaggedAnimals.length === 0) return;
+        openListModal('Records needing attention', flaggedAnimals.map(function(a) {
+          var sp = speciesById(a.speciesId);
+          return { primary: a.name, secondary: sp.label + ' · ' + a.id, tag: { text: a.status, tone: statusTone(a.status) },
+            onClick: function() { navigate({ page: 'species', speciesId: a.speciesId, animalId: a.id }); } };
+        }));
+      }
+    });
+
+    var lowStockItems = state.stockItems.filter(function(i) { return i.quantity <= (i.reorderLevel != null ? i.reorderLevel : 2); });
+    chips.push({
+      icon: '▣', tone: lowStockItems.length ? 'warn' : 'good',
+      title: lowStockItems.length + ' low stock item' + (lowStockItems.length === 1 ? '' : 's'),
+      sub: lowStockItems.length ? lowStockItems.map(function(i){return i.name;}).slice(0,2).join(', ') : 'Well stocked',
+      weight: lowStockItems.length ? 1 : 3,
+      onClick: function() { state.uiTabs.stock = 'Inventory'; navigate({ page: 'stock' }); }
+    });
+
+    var lastInspection = state.inspections.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); })[0];
+    var daysSince = lastInspection ? daysBetween(lastInspection.date, todayStr()) : null;
+    var inspTone = daysSince == null ? 'alert' : (daysSince > 45 ? 'alert' : (daysSince > 21 ? 'warn' : 'good'));
+    chips.push({
+      icon: '▤', tone: inspTone,
+      title: daysSince == null ? 'No inspection yet' : daysSince + 'd since last walk-through',
+      sub: daysSince == null ? 'Start your first one' : (daysSince > 45 ? 'Overdue for a check' : 'Logged and current'),
+      weight: inspTone === 'alert' ? 0 : (inspTone === 'warn' ? 1 : 3),
+      onClick: function() { navigate({ page: 'inspections' }); }
+    });
+
+    var lastSecurity = state.securityChecks.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); })[0];
+    var daysSinceSecurity = lastSecurity ? daysBetween(lastSecurity.date, todayStr()) : null;
+    var secTone = daysSinceSecurity == null ? 'alert' : (daysSinceSecurity > 30 ? 'alert' : (daysSinceSecurity > 14 ? 'warn' : 'good'));
+    chips.push({
+      icon: '🔒', tone: secTone,
+      title: daysSinceSecurity == null ? 'No security check yet' : daysSinceSecurity + 'd since last security check',
+      sub: daysSinceSecurity == null ? 'Start your first one' : (daysSinceSecurity > 30 ? 'Overdue — fencing, gates, alarms' : 'Fencing and gates checked'),
+      weight: secTone === 'alert' ? 0 : (secTone === 'warn' ? 1 : 3),
+      onClick: function() { navigate({ page: 'security' }); }
+    });
+
+    var now = new Date();
+    var monthEntries = financeEntries().filter(function(e) { var d = new Date(e.date); return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth(); });
+    var monthNet = monthEntries.reduce(function(s, e) { return s + e.amount; }, 0);
+    chips.push({
+      icon: '⟠', tone: monthNet >= 0 ? 'good' : 'alert',
+      title: (monthNet >= 0 ? '+' : '') + fmtR(monthNet) + ' this month',
+      sub: monthNet >= 0 ? 'Net positive so far' : 'Net negative so far',
+      weight: monthNet < 0 ? 0 : 3,
+      onClick: function() { state.uiTabs.finance = 'Overview'; navigate({ page: 'finance' }); }
+    });
+
+    chips.sort(function(a, b) { return a.weight - b.weight; });
+
+    var toneStyles = {
+      alert: { bg: 'var(--alert-soft)', color: 'var(--alert)', border: 'rgba(166,67,47,0.35)' },
+      warn: { bg: 'var(--warn-soft)', color: 'var(--warn)', border: 'rgba(184,121,15,0.35)' },
+      good: { bg: 'var(--good-soft)', color: 'var(--good)', border: 'rgba(63,122,86,0.35)' }
+    };
+    var wrap = el('div', { style: 'display:flex;gap:10px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:22px;' });
+    chips.forEach(function(c) {
+      var ts = toneStyles[c.tone] || toneStyles.good;
+      var btn = el('button', { style: 'flex:0 0 auto;min-width:172px;text-align:left;padding:13px 16px;border-radius:12px;background:' + ts.bg + ';border:1px solid ' + ts.border + ';' });
+      var top = el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:6px;' });
+      top.appendChild(el('span', { text: c.icon, style: 'font-size:16px;' }));
+      top.appendChild(el('span', { class: 'font-display', text: c.title, style: 'font-size:14px;font-weight:600;color:' + ts.color + ';' }));
+      btn.appendChild(top);
+      btn.appendChild(el('p', { text: c.sub, style: 'font-size:12px;color:' + ts.color + ';opacity:0.85;' }));
+      btn.addEventListener('click', c.onClick);
+      wrap.appendChild(btn);
+    });
+    return wrap;
+  }
+
+  function renderQuickActions() {
+    var wrap = el('div', { style: 'margin-bottom:28px;' });
+    wrap.appendChild(el('p', { class: 'eyebrow', text: 'Quick actions', style: 'margin-bottom:10px;' }));
+    var row = el('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;' });
+    var actions = [
+      { label: '+ Log an issue', cls: 'btn-quick btn-quick-issue', onClick: function() { openIssueModal(null); } },
+      { label: '+ Log animal event', cls: 'btn-quick btn-quick-event', onClick: function() { openQuickEventModal(); } },
+      { label: '+ New inspection', cls: 'btn-quick btn-quick-inspection', onClick: function() { openInspectionModal(null); } },
+      { label: '+ Add transaction', cls: 'btn-quick btn-quick-transaction', onClick: function() { openFarmTransactionModal(); } }
+    ];
+    actions.forEach(function(a) {
+      var b = el('button', { class: a.cls, text: a.label });
+      b.addEventListener('click', a.onClick);
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  var welcomeDismissed = false;
+
+  // ---------- Dashboard ----------
+  function renderDashboard() {
+    var wrap = el('div', {});
+    var heroRow = el('div', { style: 'display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;margin-bottom:20px;' });
+
+    var hero = el('div', { style: 'flex:2;min-width:240px;' });
+    hero.appendChild(el('p', { class: 'eyebrow', text: 'Farm overview', style: 'margin-bottom:6px;' }));
+    hero.appendChild(el('h1', { class: 'font-display', text: state.farm.farmName, style: 'font-size:38px;font-weight:700;line-height:1.08;color:var(--primary);' }));
+    var ownerFirst = state.farm.ownerName ? state.farm.ownerName.split(' ')[0] : '';
+    hero.appendChild(el('p', { text: ownerFirst ? ('Good to see you back, ' + ownerFirst) : 'Here\u2019s what\u2019s happening on the farm today.', style: 'color:var(--ink-soft);font-size:14px;margin-top:8px;' }));
+    heroRow.appendChild(hero);
+
+    if (!welcomeDismissed) {
+      var welcomeCard = el('div', { class: 'card-flat', style: 'flex:1;min-width:260px;max-width:400px;padding:18px 20px;border-left:4px solid var(--accent);position:relative;' });
+      var closeBtn = el('button', { text: '\u00d7', 'aria-label': 'Dismiss', style: 'position:absolute;top:8px;right:10px;background:none;border:none;font-size:18px;line-height:1;color:var(--ink-soft);' });
+      closeBtn.addEventListener('click', function() { welcomeDismissed = true; render(); });
+      welcomeCard.appendChild(closeBtn);
+      welcomeCard.appendChild(el('p', { class: 'font-display', text: 'Welcome to your demo \ud83d\udc4b', style: 'font-weight:600;font-size:16px;margin-bottom:6px;color:var(--primary);padding-right:20px;' }));
+      welcomeCard.appendChild(el('p', { text: 'Click any tab above, or tap a tile below, to see how it works. Take your time \u2014 this is just a taste of what we can build for you.', style: 'font-size:13.5px;color:var(--ink-soft);line-height:1.5;' }));
+      heroRow.appendChild(welcomeCard);
+    }
+
+    wrap.appendChild(heroRow);
+
+    // Primary focus: what needs attention right now.
+    wrap.appendChild(renderInsightChips());
+
+    // Secondary, quieter context.
+    wrap.appendChild(renderWeatherStrip());
+
+    var animals = state.animals;
+    var livestockAnimals = animals.filter(function(a) { return a.tracking !== 'crop'; });
+    var cropRecords = animals.filter(function(a) { return a.tracking === 'crop'; });
+    var totalHead = livestockAnimals.reduce(function(s, a) { return s + (a.tracking === 'flock' ? (a.count || 0) : 1); }, 0);
+    var openIssues = state.issues.filter(function(i) { return i.status === 'open'; });
+
+    var bySpecies = {};
+    animals.forEach(function(a) { (bySpecies[a.speciesId] = bySpecies[a.speciesId] || []).push(a); });
+    var speciesSection = el('div', { style: 'margin-bottom:26px;' });
+    var speciesHead = el('div', { class: 'row-link', style: 'margin-bottom:12px;align-items:baseline;' });
+    speciesHead.appendChild(el('h3', { class: 'font-display', text: 'By enterprise', style: 'font-size:18px;font-weight:600;' }));
+    var summaryBits = [totalHead + ' head'];
+    if (cropRecords.length > 0) summaryBits.push(cropRecords.length + ' crop plot' + (cropRecords.length === 1 ? '' : 's'));
+    speciesHead.appendChild(el('span', { text: summaryBits.join(' · '), style: 'font-size:12.5px;color:var(--ink-soft);' }));
+    speciesSection.appendChild(speciesHead);
+    var speciesGrid = el('div', { style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;' });
+    state.farm.speciesIds.forEach(function(id) {
+      var sp = speciesById(id);
+      var list = bySpecies[id] || [];
+      var count = list.reduce(function(s, a) { return s + ((a.tracking === 'flock' || a.tracking === 'crop') ? (a.count || 0) : 1); }, 0);
+      var flagged = list.filter(function(a) { return a.status === 'attention' || a.status === 'failed'; }).length;
+      var tileColor = sp.color || 'var(--primary)';
+      var card = el('button', { class: 'tile-lift', style: 'text-align:left;padding:14px;border-radius:12px;background:' + tileColor + ';border:none;color:#fff;box-shadow:0 2px 6px rgba(35,43,34,0.15);' });
+      var topRow = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;' });
+      topRow.appendChild(el('span', { text: sp.icon, style: 'font-size:19px;' }));
+      if (flagged > 0) topRow.appendChild(el('span', { text: flagged, style: 'font-size:10px;font-weight:700;color:' + tileColor + ';background:#fff;border-radius:999px;padding:2px 7px;' }));
+      card.appendChild(topRow);
+      card.appendChild(el('p', { class: 'font-display', text: sp.label, style: 'font-weight:600;font-size:13.5px;line-height:1.2;' }));
+      card.appendChild(el('p', { text: count + ' ' + sp.unit, style: 'color:rgba(255,255,255,0.85);font-size:11px;margin-top:3px;' }));
+      card.addEventListener('click', function() { navigate({ page: 'species', speciesId: id }); });
+      speciesGrid.appendChild(card);
+    });
+    speciesSection.appendChild(speciesGrid);
+    wrap.appendChild(speciesSection);
+
+    wrap.appendChild(renderQuickActions());
+
+    var twoCol = el('div', { style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:28px;' });
+
+    var issuesCard = el('div', {});
+    issuesCard.appendChild(el('h3', { class: 'font-display', text: 'Open issues', style: 'font-size:18px;font-weight:600;margin-bottom:12px;' }));
+    var issuesList = el('div', { class: 'card' });
+    if (openIssues.length === 0) {
+      issuesList.appendChild(el('p', { text: 'Nothing open right now.', style: 'padding:18px;color:var(--ink-soft);font-size:14px;' }));
+    } else {
+      openIssues.slice(0, 4).forEach(function(i, idx) {
+        var row = el('button', { class: 'row-link', style: 'width:100%;text-align:left;padding:13px 16px;background:none;border:none;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+        row.appendChild(el('span', { text: i.title, style: 'font-size:14px;' }));
+        row.appendChild(earTag('open', 'open'));
+        row.addEventListener('click', function() { navigate({ page: 'issues' }); });
+        issuesList.appendChild(row);
+      });
+    }
+    issuesCard.appendChild(issuesList);
+    twoCol.appendChild(issuesCard);
+
+    var compCard = el('div', {});
+    compCard.appendChild(el('h3', { class: 'font-display', text: 'Compliance status', style: 'font-size:18px;font-weight:600;margin-bottom:12px;' }));
+    var compList = el('div', { class: 'card' });
+    if (state.compliance.length === 0) {
+      compList.appendChild(el('p', { text: 'No compliance items tracked yet.', style: 'padding:18px;color:var(--ink-soft);font-size:14px;' }));
+    } else {
+      state.compliance.slice(0, 4).forEach(function(c, idx) {
+        var row = el('button', { class: 'row-link', style: 'width:100%;text-align:left;padding:13px 16px;background:none;border:none;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+        row.appendChild(el('span', { text: c.name, style: 'font-size:14px;' }));
+        row.appendChild(earTag(effectiveComplianceStatus(c), effectiveComplianceStatus(c)));
+        row.addEventListener('click', function() { navigate({ page: 'compliance' }); });
+        compList.appendChild(row);
+      });
+    }
+    compCard.appendChild(compList);
+    twoCol.appendChild(compCard);
+    wrap.appendChild(twoCol);
+
+    var chartSection = el('div', {});
+    var chartHead = el('div', { class: 'row-link', style: 'margin-bottom:12px;' });
+    chartHead.appendChild(el('h3', { class: 'font-display', text: 'Farm charts', style: 'font-size:18px;font-weight:600;' }));
+    var viewInsightsBtn = el('button', { class: 'btn-link-text', text: 'Full insights →' });
+    viewInsightsBtn.addEventListener('click', function() { navigate({ page: 'insights' }); });
+    chartHead.appendChild(viewInsightsBtn);
+    chartSection.appendChild(chartHead);
+
+    var tileRow = el('div', { style: 'display:flex;gap:12px;flex-wrap:wrap;' });
+    var tiles = [
+      { title: 'Farm activity', icon: '📈', color: 'var(--primary)', open: function() { openChartModal('Farm activity, last 12 weeks', renderActivityChart); } },
+      { title: 'Health status', icon: '🩺', color: 'var(--alert)', open: function() { openChartModal('Health status by species', renderHealthBarChart); } },
+      { title: 'Cash flow', icon: '⟠', color: 'var(--accent)', open: function() { openChartModal('Cash flow, last 6 months', renderCashflowChart); } }
+    ];
+    tiles.forEach(function(t) {
+      var tile = el('button', { class: 'tile-lift', style: 'flex:1;min-width:160px;text-align:left;padding:18px 16px;border-radius:12px;background:' + t.color + ';border:none;color:#fff;' });
+      var top = el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:8px;' });
+      top.appendChild(el('span', { text: t.icon, style: 'font-size:18px;' }));
+      top.appendChild(el('span', { class: 'font-display', text: t.title, style: 'font-size:15px;font-weight:600;' }));
+      tile.appendChild(top);
+      tile.appendChild(el('p', { text: 'Click to open', style: 'font-size:11px;color:rgba(255,255,255,0.85);letter-spacing:0.02em;' }));
+      tile.addEventListener('click', t.open);
+      tileRow.appendChild(tile);
+    });
+    chartSection.appendChild(tileRow);
+    wrap.appendChild(chartSection);
+
+    return wrap;
+  }
+
+  function openChartModal(title, buildFn) {
+    var overlay = el('div', { style: 'position:fixed;inset:0;background:rgba(35,43,34,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;' });
+    var modal = el('div', { class: 'card', style: 'width:100%;max-width:680px;padding:24px;max-height:88vh;overflow-y:auto;' });
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;' });
+    head.appendChild(el('h3', { class: 'font-display', text: title, style: 'font-size:19px;font-weight:600;' }));
+    var closeBtn = el('button', { text: '×', style: 'background:none;border:none;font-size:22px;color:var(--ink-soft);' });
+    closeBtn.addEventListener('click', function() { overlay.remove(); });
+    head.appendChild(closeBtn);
+    modal.appendChild(head);
+    modal.appendChild(buildFn());
+    var btnRow = el('div', { style: 'display:flex;justify-content:flex-end;margin-top:16px;' });
+    var closeBtn2 = el('button', { class: 'btn-outline', text: 'Close' });
+    closeBtn2.addEventListener('click', function() { overlay.remove(); });
+    btnRow.appendChild(closeBtn2);
+    modal.appendChild(btnRow);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  }
+
+
+  // ---------- Shared record form fields (livestock + crops) ----------
+  function animalFormFieldsFor(sp) {
+    var fields = [{
+      key: 'name',
+      label: sp.tracking === 'crop' ? 'Plot / field name' : (sp.tracking === 'flock' ? 'Flock / pen name' : 'Name or tag'),
+      placeholder: sp.tracking === 'crop' ? 'e.g. Tomato bed 2' : (sp.tracking === 'flock' ? 'e.g. Layer flock B' : 'e.g. Thandi')
+    }];
+    fields.push({ key: 'breed', label: sp.tracking === 'crop' ? 'Variety' : 'Breed' });
+    if (sp.tracking === 'crop') {
+      fields.push({ key: 'count', label: 'Area planted (' + sp.unit + ')', type: 'number' });
+      fields.push({ key: 'status', label: 'Status', type: 'select', options: [
+        { value: 'growing', label: 'Growing' }, { value: 'ready', label: 'Ready to harvest' }, { value: 'harvested', label: 'Harvested' }, { value: 'failed', label: 'Failed / lost' }
+      ] });
+    } else if (sp.tracking === 'flock') {
+      fields.push({ key: 'count', label: 'Number of birds', type: 'number' });
+      fields.push({ key: 'status', label: 'Status', type: 'select', options: [
+        { value: 'healthy', label: 'Healthy' }, { value: 'attention', label: 'Needs attention' }, { value: 'sold', label: 'Sold' }, { value: 'deceased', label: 'Deceased' }
+      ] });
+    } else {
+      fields.push({ key: 'weightKg', label: 'Weight (kg)', type: 'number' });
+      fields.push({ key: 'status', label: 'Status', type: 'select', options: [
+        { value: 'healthy', label: 'Healthy' }, { value: 'attention', label: 'Needs attention' }, { value: 'sold', label: 'Sold' }, { value: 'deceased', label: 'Deceased' }
+      ] });
+    }
+    return fields;
+  }
+  function defaultStatusFor(sp) { return sp.tracking === 'crop' ? 'growing' : 'healthy'; }
+
+  // ---------- Species page ----------
+  function renderSpeciesPage() {
+    var speciesId = state.view.speciesId;
+    var sp = speciesById(speciesId);
+    var list = state.animals.filter(function(a) { return a.speciesId === speciesId; });
+
+    if (state.view.animalId) {
+      var animal = list.filter(function(a) { return a.id === state.view.animalId; })[0];
+      if (animal) return renderAnimalDetail(animal, sp);
+    }
+
+    var wrap = el('div', {});
+    var header = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;' });
+    header.appendChild(pageHeader(sp.tracking === 'crop' ? 'Plot records' : (sp.tracking === 'flock' ? 'Flock records' : 'Individual records'), sp.icon + '  ' + sp.label));
+    var addLabel = sp.tracking === 'crop' ? 'plot' : (sp.tracking === 'flock' ? 'flock/batch' : sp.label.replace(/s$/, ''));
+    var addBtn = el('button', { class: 'btn-primary', text: '+ Add ' + addLabel });
+    header.appendChild(addBtn);
+    wrap.appendChild(header);
+
+    var grid = el('div', { style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;' });
+
+    function animalFormFields() { return animalFormFieldsFor(sp); }
+
+    function openAdd() {
+      openFormModal({
+        title: 'Add ' + addLabel,
+        fields: animalFormFields(),
+        initial: { status: defaultStatusFor(sp) },
+        validate: function(v) { if (!v.name || !v.name.trim()) return 'Give this record a name or tag.'; },
+        onSubmit: function(v) {
+          var rec = Object.assign({ id: nextId(speciesId.slice(0,3)), speciesId: speciesId, tracking: sp.tracking, createdAt: todayStr(), events: [], finance: [] }, v);
+          state.animals.push(rec);
+          render();
+        }
+      });
+    }
+    addBtn.addEventListener('click', openAdd);
+
+    function openEdit(a) {
+      openFormModal({
+        title: 'Edit ' + a.name,
+        fields: animalFormFields(),
+        initial: a,
+        deleteLabel: a.name,
+        validate: function(v) { if (!v.name || !v.name.trim()) return 'Give this record a name or tag.'; },
+        onDelete: function() { state.animals = state.animals.filter(function(x){ return x.id !== a.id; }); render(); },
+        onSubmit: function(v) { Object.assign(a, v); render(); }
+      });
+    }
+
+    var filterTabs = sp.tracking === 'crop' ? ['All', 'Growing', 'Ready', 'Harvested', 'Failed'] : ['All', 'Healthy', 'Attention', 'Sold', 'Deceased'];
+    var filterMap = sp.tracking === 'crop'
+      ? { All: null, Growing: 'growing', Ready: 'ready', Harvested: 'harvested', Failed: 'failed' }
+      : { All: null, Healthy: 'healthy', Attention: 'attention', Sold: 'sold', Deceased: 'deceased' };
+    var currentFilter = state.view.statusFilter || 'All';
+    if (list.length > 0) wrap.appendChild(simpleTabBar(filterTabs, currentFilter, function(t) { state.view.statusFilter = t; render(); }));
+    var visibleList = filterMap[currentFilter] ? list.filter(function(a) { return a.status === filterMap[currentFilter]; }) : list;
+
+    if (list.length === 0) {
+      var empty = el('div', { class: 'card', style: 'border-style:dashed;text-align:center;padding:40px 20px;grid-column:1/-1;' });
+      empty.appendChild(el('p', { text: 'No ' + sp.label.toLowerCase() + ' recorded yet', style: 'font-weight:500;margin-bottom:4px;' }));
+      empty.appendChild(el('p', { text: 'Add your first record to start tracking it.', style: 'color:var(--ink-soft);font-size:14px;' }));
+      grid.appendChild(empty);
+    } else if (visibleList.length === 0) {
+      var emptyFiltered = el('div', { class: 'card', style: 'border-style:dashed;text-align:center;padding:32px 20px;grid-column:1/-1;' });
+      emptyFiltered.appendChild(el('p', { text: 'Nothing in ' + currentFilter.toLowerCase() + ' right now.', style: 'color:var(--ink-soft);font-size:14px;' }));
+      grid.appendChild(emptyFiltered);
+    }
+    visibleList.forEach(function(a) {
+      var card = el('div', { class: 'card', style: 'padding:16px;' });
+      var top = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;' });
+      top.appendChild(earTag(a.id, 'neutral'));
+      top.appendChild(el('span', { text: statusLabel(a.status), style: 'font-size:12px;color:var(--ink-soft);' }));
+      card.appendChild(top);
+
+      var body = el('button', { style: 'width:100%;text-align:left;background:none;border:none;padding:0;' });
+      body.appendChild(el('p', { class: 'font-display', text: a.name, style: 'font-weight:600;' }));
+      body.appendChild(el('p', { text: a.breed || '', style: 'color:var(--ink-soft);font-size:13px;' }));
+      var metaText = (sp.tracking === 'flock' || sp.tracking === 'crop') ? (a.count + ' ' + sp.unit) : (a.weightKg + ' kg');
+      body.appendChild(el('p', { text: metaText, style: 'font-size:12px;color:var(--ink-soft);margin-top:8px;' }));
+      body.addEventListener('click', function() { navigate({ page: 'species', speciesId: speciesId, animalId: a.id }); });
+      card.appendChild(body);
+
+      var actions = el('div', { style: 'display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);' });
+      var editLink = el('button', { class: 'btn-link-text', text: 'Edit' });
+      editLink.addEventListener('click', function(e) { e.stopPropagation(); openEdit(a); });
+      var delLink = el('button', { class: 'btn-danger-text', text: 'Delete' });
+      delLink.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (confirmDelete(a.name)) { state.animals = state.animals.filter(function(x){ return x.id !== a.id; }); render(); }
+      });
+      actions.appendChild(editLink); actions.appendChild(delLink);
+      card.appendChild(actions);
+
+      grid.appendChild(card);
+    });
+
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function statusLabel(status) {
+    return {
+      healthy: 'Healthy', attention: 'Needs attention', sold: 'Sold', deceased: 'Deceased',
+      growing: 'Growing', ready: 'Ready to harvest', harvested: 'Harvested', failed: 'Failed / lost'
+    }[status] || status;
+  }
+  function statusTone(status) {
+    return {
+      healthy: 'healthy', attention: 'attention', sold: 'sold', deceased: 'deceased',
+      growing: 'neutral', ready: 'due', harvested: 'compliant', failed: 'attention'
+    }[status] || 'neutral';
+  }
+
+  function renderAnimalDetail(animal, sp) {
+    var wrap = el('div', {});
+    var back = el('button', { text: '← Back to ' + sp.label.toLowerCase(), style: 'background:none;border:none;color:var(--ink-soft);font-size:14px;text-align:left;padding:0;margin-bottom:18px;' });
+    back.addEventListener('click', function() { navigate({ page: 'species', speciesId: sp.id }); });
+    wrap.appendChild(back);
+
+    var linkedIssues = state.issues.filter(function(i) { return i.animalId === animal.id; });
+
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:12px;' });
+    var headLeft = el('div', {});
+    var badges = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;' });
+    badges.appendChild(earTag(animal.id, 'neutral'));
+    badges.appendChild(earTag(animal.status, statusTone(animal.status)));
+    if (linkedIssues.filter(function(i){return i.status==='open';}).length > 0) badges.appendChild(earTag(linkedIssues.filter(function(i){return i.status==='open';}).length + ' open issue(s)', 'attention'));
+    headLeft.appendChild(badges);
+    headLeft.appendChild(el('h2', { class: 'font-display', text: animal.name, style: 'font-size:26px;font-weight:600;' }));
+    headLeft.appendChild(el('p', { text: (animal.breed || '') + ' · ' + sp.label, style: 'color:var(--ink-soft);font-size:14px;' }));
+    head.appendChild(headLeft);
+
+    var headActions = el('div', { style: 'display:flex;gap:8px;' });
+    var editBtn = el('button', { class: 'btn-outline', text: 'Edit' });
+    editBtn.addEventListener('click', function() {
+      var fields = animalFormFieldsFor(sp);
+      openFormModal({
+        title: 'Edit ' + animal.name, fields: fields, initial: animal, deleteLabel: animal.name,
+        validate: function(v) { if (!v.name || !v.name.trim()) return 'Give this record a name or tag.'; },
+        onDelete: function() { state.animals = state.animals.filter(function(x){ return x.id !== animal.id; }); navigate({ page: 'species', speciesId: sp.id }); },
+        onSubmit: function(v) { Object.assign(animal, v); render(); }
+      });
+    });
+    headActions.appendChild(editBtn);
+    head.appendChild(headActions);
+    wrap.appendChild(head);
+
+    if (linkedIssues.length > 0) {
+      var issueNote = el('div', { class: 'card-flat', style: 'padding:12px 16px;margin-bottom:18px;' });
+      issueNote.appendChild(el('p', { text: 'Related issue log', style: 'font-size:11px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;' }));
+      linkedIssues.forEach(function(i, idx) {
+        var row = el('div', { class: 'row-link', style: (idx > 0 ? 'margin-top:6px;padding-top:6px;border-top:1px solid var(--border);' : '') });
+        row.appendChild(el('span', { text: i.title, style: 'font-size:13px;' }));
+        row.appendChild(earTag(i.status, i.status));
+        issueNote.appendChild(row);
+      });
+      var goToIssues = el('button', { class: 'btn-link-text', text: 'View in Issues →', style: 'margin-top:6px;' });
+      goToIssues.addEventListener('click', function() { navigate({ page: 'issues' }); });
+      issueNote.appendChild(goToIssues);
+      wrap.appendChild(issueNote);
+    }
+
+    var tabs = sp.tracking === 'crop' ? ['Overview', 'Care & Treatments', 'Harvest', 'Finance'] : ['Overview', 'Health & Breeding', 'Production', 'Finance'];
+    var tabBar = el('div', { style: 'display:flex;gap:4px;border-bottom:1px solid var(--border);overflow-x:auto;margin-bottom:18px;' });
+    var contentArea = el('div', {});
+    var activeTab = 'Overview';
+
+    function renderTabs() {
+      tabBar.innerHTML = '';
+      tabs.forEach(function(t) {
+        var isActiveTab = t === activeTab;
+        var b = el('button', { text: t, style: 'padding:10px 16px;font-size:14px;font-weight:500;white-space:nowrap;background:none;border:none;border-bottom:2px solid ' + (isActiveTab ? 'var(--accent)' : 'transparent') + ';color:' + (isActiveTab ? 'var(--ink)' : 'var(--ink-soft)') + ';margin-bottom:-1px;' });
+        b.addEventListener('click', function() { activeTab = t; renderTabs(); renderContent(); });
+        tabBar.appendChild(b);
+      });
+    }
+
+    function infoCard(label, value) {
+      var c = el('div', { class: 'card', style: 'padding:14px;' });
+      c.appendChild(el('p', { text: label, style: 'font-size:11px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;' }));
+      c.appendChild(el('p', { class: 'font-display', text: String(value), style: 'font-size:19px;font-weight:600;' }));
+      return c;
+    }
+
+    function eventLogSection(types, emptyText, typeOptions) {
+      var section = el('div', {});
+      var form = el('form', { class: 'card', style: 'padding:14px;display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;' });
+      var typeSelect = null;
+      if (typeOptions) {
+        var typeField = el('div', {});
+        typeField.appendChild(el('label', { text: 'Type', style: 'display:block;font-size:11px;color:var(--ink-soft);margin-bottom:4px;' }));
+        typeSelect = el('select', { style: 'width:auto;' });
+        typeOptions.forEach(function(o) { typeSelect.appendChild(el('option', { value: o, text: o.charAt(0).toUpperCase() + o.slice(1) })); });
+        typeField.appendChild(typeSelect);
+        form.appendChild(typeField);
+      }
+      var dateField = el('div', {});
+      dateField.appendChild(el('label', { text: 'Date', style: 'display:block;font-size:11px;color:var(--ink-soft);margin-bottom:4px;' }));
+      var dateInput = el('input', { type: 'date', style: 'width:150px;' });
+      dateInput.value = todayStr();
+      dateField.appendChild(dateInput);
+      form.appendChild(dateField);
+      var noteField = el('div', { style: 'flex:1;min-width:180px;' });
+      noteField.appendChild(el('label', { text: 'Note', style: 'display:block;font-size:11px;color:var(--ink-soft);margin-bottom:4px;' }));
+      var noteInput = el('input', { placeholder: typeOptions ? 'e.g. Vaccinated for lumpy skin disease' : 'e.g. Sheared — 3.4kg wool' });
+      noteField.appendChild(noteInput);
+      form.appendChild(noteField);
+      form.appendChild(el('button', { type: 'submit', class: 'btn-secondary', text: 'Log entry' }));
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!noteInput.value.trim()) return;
+        var type = typeOptions ? typeSelect.value : types[0];
+        animal.events.unshift({ id: nextId('evt'), date: dateInput.value || todayStr(), type: type, note: noteInput.value.trim() });
+        noteInput.value = '';
+        render();
+      });
+      section.appendChild(form);
+
+      var logCard = el('div', { class: 'card' });
+      var filtered = animal.events.filter(function(e) { return types.indexOf(e.type) > -1; }).slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+      if (filtered.length === 0) {
+        logCard.appendChild(el('p', { text: emptyText, style: 'padding:18px;color:var(--ink-soft);font-size:14px;' }));
+      } else {
+        filtered.forEach(function(e, i) {
+          var row = el('div', { class: 'row-link', style: 'padding:12px 16px;' + (i > 0 ? 'border-top:1px solid var(--border);' : '') });
+          var left = el('div', {});
+          left.appendChild(el('p', { text: e.note, style: 'font-size:14px;' }));
+          left.appendChild(el('p', { text: e.date + (typeOptions ? ' · ' + e.type : ''), style: 'font-size:12px;color:var(--ink-soft);margin-top:2px;' }));
+          row.appendChild(left);
+          var del = el('button', { class: 'btn-danger-text', text: 'Delete' });
+          del.addEventListener('click', function() {
+            if (confirmDelete('this entry')) { animal.events = animal.events.filter(function(x){ return x.id !== e.id; }); render(); }
+          });
+          row.appendChild(del);
+          logCard.appendChild(row);
+        });
+      }
+      section.appendChild(logCard);
+      return section;
+    }
+
+    function renderContent() {
+      contentArea.innerHTML = '';
+      if (activeTab === 'Overview') {
+        var grid = el('div', { style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;' });
+        var primaryLabel = sp.tracking === 'crop' ? 'Area planted' : (sp.tracking === 'flock' ? 'Number of birds' : 'Weight');
+        var primaryValue = (sp.tracking === 'flock' || sp.tracking === 'crop') ? (animal.count + ' ' + sp.unit) : (animal.weightKg + ' kg');
+        grid.appendChild(infoCard(primaryLabel, primaryValue));
+        if (sp.prodKey && animal[sp.prodKey] != null) grid.appendChild(infoCard(sp.prodLabel, animal[sp.prodKey]));
+        grid.appendChild(infoCard(sp.tracking === 'crop' ? 'Planted' : 'On farm since', animal.createdAt));
+        grid.appendChild(infoCard('Total events logged', animal.events.length));
+        contentArea.appendChild(grid);
+      } else if (activeTab === 'Health & Breeding') {
+        contentArea.appendChild(eventLogSection(['health', 'breeding'], 'No health or breeding events logged yet.', ['health', 'breeding']));
+      } else if (activeTab === 'Production') {
+        contentArea.appendChild(eventLogSection(['production'], 'No production records yet.', null));
+      } else if (activeTab === 'Care & Treatments') {
+        contentArea.appendChild(eventLogSection(['care'], 'No care or treatment entries logged yet.', null));
+      } else if (activeTab === 'Harvest') {
+        contentArea.appendChild(eventLogSection(['harvest'], 'No harvest entries logged yet.', null));
+      } else if (activeTab === 'Finance') {
+        var finWrap = el('div', {});
+        var addForm = el('form', { class: 'card', style: 'padding:14px;display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;' });
+        var typeSel = el('select', { style: 'width:auto;' });
+        typeSel.appendChild(el('option', { value: 'income', text: 'Income' }));
+        typeSel.appendChild(el('option', { value: 'expense', text: 'Expense' }));
+        var fDate = el('input', { type: 'date', style: 'width:150px;' }); fDate.value = todayStr();
+        var labelInput = el('input', { placeholder: 'e.g. Kid sold', style: 'flex:1;min-width:140px;' });
+        var amountInput = el('input', { type: 'number', placeholder: 'Amount (R)', style: 'width:130px;' });
+        addForm.appendChild(typeSel); addForm.appendChild(fDate); addForm.appendChild(labelInput); addForm.appendChild(amountInput);
+        addForm.appendChild(el('button', { type: 'submit', class: 'btn-secondary', text: 'Add' }));
+        addForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          if (!labelInput.value.trim() || !amountInput.value) return;
+          var amt = Math.abs(Number(amountInput.value)) * (typeSel.value === 'expense' ? -1 : 1);
+          animal.finance.unshift({ id: nextId('fin'), date: fDate.value || todayStr(), type: typeSel.value, label: labelInput.value.trim(), amount: amt });
+          labelInput.value = ''; amountInput.value = '';
+          render();
+        });
+        finWrap.appendChild(addForm);
+
+        var finCard = el('div', { class: 'card' });
+        if (animal.finance.length === 0) {
+          finCard.appendChild(el('p', { text: 'No income or expenses logged for this record yet.', style: 'padding:18px;color:var(--ink-soft);font-size:14px;' }));
+        } else {
+          animal.finance.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); }).forEach(function(f, i) {
+            var row = el('div', { class: 'row-link', style: 'padding:12px 16px;' + (i > 0 ? 'border-top:1px solid var(--border);' : '') });
+            row.appendChild(el('div', {}, [el('p', { text: f.label, style: 'font-size:14px;' }), el('p', { text: f.date, style: 'font-size:12px;color:var(--ink-soft);' })]));
+            var right = el('div', { style: 'display:flex;align-items:center;gap:12px;' });
+            right.appendChild(el('span', { text: (f.amount >= 0 ? '+' : '') + fmtR(f.amount), style: 'font-family:"IBM Plex Mono",monospace;font-weight:600;color:' + (f.amount >= 0 ? 'var(--primary)' : 'var(--alert)') }));
+            var del = el('button', { class: 'btn-danger-text', text: 'Delete' });
+            del.addEventListener('click', function() {
+              if (confirmDelete('this transaction')) { animal.finance = animal.finance.filter(function(x){ return x.id !== f.id; }); render(); }
+            });
+            right.appendChild(del);
+            row.appendChild(right);
+            finCard.appendChild(row);
+          });
+        }
+        finWrap.appendChild(finCard);
+        contentArea.appendChild(finWrap);
+      }
+    }
+
+    renderTabs();
+    renderContent();
+    wrap.appendChild(tabBar);
+    wrap.appendChild(contentArea);
+    return wrap;
+  }
+
+  // ---------- Issues page ----------
+  function openIssueModal(existing) {
+    var overlay = el('div', { style: 'position:fixed;inset:0;background:rgba(35,43,34,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;' });
+    var modal = el('div', { class: 'card', style: 'width:100%;max-width:480px;padding:24px;max-height:88vh;overflow-y:auto;' });
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;' });
+    head.appendChild(el('h3', { class: 'font-display', text: existing ? 'Edit issue' : 'Log an issue', style: 'font-size:19px;font-weight:600;' }));
+    var closeBtn = el('button', { text: '×', style: 'background:none;border:none;font-size:22px;color:var(--ink-soft);' });
+    closeBtn.addEventListener('click', function() { overlay.remove(); });
+    head.appendChild(closeBtn);
+    modal.appendChild(head);
+
+    var form = el('form', { style: 'display:flex;flex-direction:column;gap:14px;' });
+
+    var titleInput = el('input', { placeholder: 'e.g. Fence down in north camp' });
+    titleInput.value = existing ? existing.title : '';
+    form.appendChild(el('div', {}, [el('label', { text: 'What is the issue?', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), titleInput]));
+
+    var descInput = el('textarea', { placeholder: 'What happened, what needs to be done' });
+    descInput.value = existing ? (existing.description || '') : '';
+    form.appendChild(el('div', {}, [el('label', { text: 'Details', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), descInput]));
+
+    var speciesSelect = el('select', {});
+    speciesSelect.appendChild(el('option', { value: '', text: 'General / not species-specific' }));
+    state.farm.speciesIds.forEach(function(id) { speciesSelect.appendChild(el('option', { value: id, text: speciesById(id).label })); });
+    speciesSelect.value = existing ? (existing.speciesId || '') : '';
+    form.appendChild(el('div', {}, [el('label', { text: 'Relates to', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), speciesSelect]));
+
+    var animalSelect = el('select', {});
+    function refreshAnimalOptions() {
+      animalSelect.innerHTML = '';
+      animalSelect.appendChild(el('option', { value: '', text: 'No specific animal / flock' }));
+      state.animals.filter(function(a) { return !speciesSelect.value || a.speciesId === speciesSelect.value; }).forEach(function(a) {
+        animalSelect.appendChild(el('option', { value: a.id, text: a.name + ' (' + a.id + ')' }));
+      });
+      if (existing && existing.animalId) animalSelect.value = existing.animalId;
+    }
+    speciesSelect.addEventListener('change', refreshAnimalOptions);
+    refreshAnimalOptions();
+    form.appendChild(el('div', {}, [el('label', { text: 'Specific animal (optional)', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), animalSelect]));
+
+    var categorySelect = el('select', {});
+    [['general', 'General'], ['theft', 'Theft / stock theft'], ['security', 'Security incident']].forEach(function(o) {
+      categorySelect.appendChild(el('option', { value: o[0], text: o[1] }));
+    });
+    categorySelect.value = existing ? (existing.category || 'general') : 'general';
+    form.appendChild(el('div', {}, [el('label', { text: 'Category', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), categorySelect]));
+
+    var caseNumberInput = el('input', { placeholder: 'e.g. CAS 123/08/2026' });
+    caseNumberInput.value = existing ? (existing.caseNumber || '') : '';
+    var caseNumberField = el('div', { style: categorySelect.value === 'theft' ? '' : 'display:none;' }, [
+      el('label', { text: 'Police case number (optional)', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), caseNumberInput
+    ]);
+    categorySelect.addEventListener('change', function() { caseNumberField.style.display = categorySelect.value === 'theft' ? '' : 'none'; });
+    form.appendChild(caseNumberField);
+
+    var statusSelect = el('select', {});
+    statusSelect.appendChild(el('option', { value: 'open', text: 'Open' }));
+    statusSelect.appendChild(el('option', { value: 'resolved', text: 'Resolved' }));
+    statusSelect.value = existing ? existing.status : 'open';
+    form.appendChild(el('div', {}, [el('label', { text: 'Status', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), statusSelect]));
+
+    var btnRow = el('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;padding-top:6px;' });
+    if (existing) {
+      var delBtn = el('button', { type: 'button', class: 'btn-outline', text: 'Delete', style: 'border-color:rgba(166,67,47,0.4);color:var(--alert);' });
+      delBtn.addEventListener('click', function() {
+        if (confirmDelete('this issue')) { state.issues = state.issues.filter(function(x){ return x.id !== existing.id; }); overlay.remove(); render(); }
+      });
+      btnRow.appendChild(delBtn);
+    }
+    btnRow.appendChild(el('div', { style: 'flex:1;' }));
+    var cancelBtn = el('button', { type: 'button', class: 'btn-outline', text: 'Cancel' });
+    cancelBtn.addEventListener('click', function() { overlay.remove(); });
+    var saveBtn = el('button', { type: 'submit', class: 'btn-primary', text: 'Save' });
+    btnRow.appendChild(cancelBtn); btnRow.appendChild(saveBtn);
+    form.appendChild(btnRow);
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!titleInput.value.trim()) { alert('Give the issue a short title.'); return; }
+      var values = { title: titleInput.value.trim(), description: descInput.value.trim(), speciesId: speciesSelect.value || null, animalId: animalSelect.value || null, status: statusSelect.value, category: categorySelect.value, caseNumber: caseNumberInput.value.trim() };
+      overlay.remove();
+      if (existing) { Object.assign(existing, values); render(); }
+      else { state.issues.unshift(Object.assign({ id: nextId('iss'), date: todayStr() }, values)); render(); }
+    });
+
+    modal.appendChild(form);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    titleInput.focus();
+  }
+
+  function renderIssuesPage() {
+    var wrap = el('div', {});
+    var header = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;' });
+    header.appendChild(pageHeader('Farm log', 'Issues', 'Anything worth flagging — a broken fence, a sick animal to keep an eye on, a repair that is needed. Log it here so nothing gets forgotten.'));
+    var addBtn = el('button', { class: 'btn-primary', text: '+ Log an issue' });
+    addBtn.addEventListener('click', function() { openIssueModal(null); });
+    header.appendChild(addBtn);
+    wrap.appendChild(header);
+
+    wrap.appendChild(simpleTabBar(['Open', 'Resolved', 'All'], state.uiTabs.issues, function(t) { state.uiTabs.issues = t; render(); }));
+
+    var visibleIssues = state.uiTabs.issues === 'All' ? state.issues.slice() : state.issues.filter(function(i) { return i.status === state.uiTabs.issues.toLowerCase(); });
+
+    var list = el('div', { class: 'card' });
+    if (visibleIssues.length === 0) {
+      list.appendChild(el('p', { text: state.uiTabs.issues === 'Open' ? 'No open issues. Good sign.' : 'Nothing here yet.', style: 'padding:20px;color:var(--ink-soft);font-size:14px;' }));
+    } else {
+      visibleIssues.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); }).forEach(function(iss, idx) {
+        var linkedAnimal = iss.animalId ? state.animals.filter(function(a){ return a.id === iss.animalId; })[0] : null;
+        var row = el('div', { style: 'padding:16px;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+        var top = el('div', { class: 'row-link', style: 'margin-bottom:6px;align-items:flex-start;' });
+        var titleWrap = el('div', { style: 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;' });
+        titleWrap.appendChild(el('span', { class: 'font-display', text: iss.title, style: 'font-weight:600;font-size:15px;' }));
+        titleWrap.appendChild(earTag(iss.status, iss.status));
+        if (iss.category === 'theft') titleWrap.appendChild(earTag('theft', 'attention'));
+        else if (iss.category === 'security') titleWrap.appendChild(earTag('security', 'due'));
+        if (iss.speciesId) titleWrap.appendChild(el('span', { text: speciesById(iss.speciesId).icon + ' ' + speciesById(iss.speciesId).label, style: 'font-size:12px;color:var(--ink-soft);' }));
+        top.appendChild(titleWrap);
+        top.appendChild(el('span', { text: iss.date, style: 'font-size:12px;color:var(--ink-soft);white-space:nowrap;' }));
+        row.appendChild(top);
+        if (iss.description) row.appendChild(el('p', { text: iss.description, style: 'font-size:14px;color:var(--ink-soft);margin-bottom:6px;' }));
+        if (iss.caseNumber) row.appendChild(el('p', { text: 'Case #: ' + iss.caseNumber, style: 'font-size:12px;color:var(--ink-soft);margin-bottom:10px;' }));
+
+        var actions = el('div', { style: 'display:flex;gap:14px;flex-wrap:wrap;' });
+        if (iss.status === 'open') {
+          var resolveBtn = el('button', { class: 'btn-link-text', text: 'Mark resolved' });
+          resolveBtn.addEventListener('click', function() { iss.status = 'resolved'; render(); });
+          actions.appendChild(resolveBtn);
+        }
+        var editBtn = el('button', { class: 'btn-link-text', text: 'Edit' });
+        editBtn.addEventListener('click', function() { openIssueModal(iss); });
+        actions.appendChild(editBtn);
+        if (linkedAnimal) {
+          var viewAnimalBtn = el('button', { class: 'btn-link-text', text: 'View ' + linkedAnimal.name + ' →' });
+          viewAnimalBtn.addEventListener('click', function() { navigate({ page: 'species', speciesId: linkedAnimal.speciesId, animalId: linkedAnimal.id }); });
+          actions.appendChild(viewAnimalBtn);
+        }
+        row.appendChild(actions);
+        list.appendChild(row);
+      });
+    }
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  // ---------- Compliance page ----------
+  var COMPLIANCE_PRESETS = [
+    { name: 'Brand mark / registration renewal', category: 'Registration', notes: 'Animal Identification Act — livestock brand registration.' },
+    { name: 'Red meat levy return', category: 'Levies', notes: 'SAMIC red meat levy submission.' },
+    { name: 'Quarantine notice compliance', category: 'Animal health', notes: 'Check for and follow any active provincial quarantine restriction.' }
+  ];
+
+  function renderCompliancePage() {
+    var wrap = el('div', {});
+    var header = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;' });
+    header.appendChild(pageHeader('Stay ahead of it', 'Compliance', 'Vaccination records, movement permits, and anything else you need on hand for buyers, vets, or inspectors.'));
+    var headerBtns = el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;align-items:center;' });
+    var addBtn = el('button', { class: 'btn-primary', text: '+ Add item' });
+    var presetSelect = el('select', { style: 'width:auto;' });
+    presetSelect.appendChild(el('option', { value: '', text: 'Quick add common item…' }));
+    COMPLIANCE_PRESETS.forEach(function(p, i) { presetSelect.appendChild(el('option', { value: String(i), text: p.name })); });
+    headerBtns.appendChild(presetSelect);
+    headerBtns.appendChild(addBtn);
+    header.appendChild(headerBtns);
+    wrap.appendChild(header);
+
+    function fields() {
+      return [
+        { key: 'name', label: 'Compliance item', placeholder: 'e.g. Cattle movement permit' },
+        { key: 'category', label: 'Category', placeholder: 'e.g. Movement, Animal health' },
+        { key: 'dueDate', label: 'Due date', type: 'date' },
+        { key: 'status', label: 'Status', type: 'select', options: [{ value: 'compliant', label: 'Compliant' }, { value: 'due', label: 'Due soon' }, { value: 'overdue', label: 'Overdue' }] },
+        { key: 'notes', label: 'Notes', type: 'textarea' }
+      ];
+    }
+
+    addBtn.addEventListener('click', function() {
+      openFormModal({ title: 'Add compliance item', fields: fields(), initial: { status: 'due' },
+        validate: function(v) { if (!v.name || !v.name.trim()) return 'Give this item a name.'; },
+        onSubmit: function(v) { state.compliance.unshift(Object.assign({ id: nextId('cmp') }, v)); render(); } });
+    });
+
+    presetSelect.addEventListener('change', function() {
+      if (!presetSelect.value) return;
+      var preset = COMPLIANCE_PRESETS[Number(presetSelect.value)];
+      presetSelect.value = '';
+      openFormModal({ title: 'Add compliance item', fields: fields(), initial: Object.assign({ status: 'due' }, preset),
+        validate: function(v) { if (!v.name || !v.name.trim()) return 'Give this item a name.'; },
+        onSubmit: function(v) { state.compliance.unshift(Object.assign({ id: nextId('cmp') }, v)); render(); } });
+    });
+
+    wrap.appendChild(simpleTabBar(['Outstanding', 'All items'], state.uiTabs.compliance, function(t) { state.uiTabs.compliance = t; render(); }));
+
+    var items = state.uiTabs.compliance === 'Outstanding'
+      ? state.compliance.filter(function(c) { return effectiveComplianceStatus(c) !== 'compliant'; })
+      : state.compliance.slice();
+
+    var list = el('div', { class: 'card' });
+    if (items.length === 0) {
+      list.appendChild(el('p', { text: state.uiTabs.compliance === 'Outstanding' ? 'Nothing outstanding — you are on top of it.' : 'Nothing tracked yet.', style: 'padding:20px;color:var(--ink-soft);font-size:14px;' }));
+    } else {
+      items.forEach(function(c, idx) {
+        var status = effectiveComplianceStatus(c);
+        var row = el('div', { style: 'padding:16px;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+        var top = el('div', { class: 'row-link' });
+        var left = el('div', { style: 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;' });
+        left.appendChild(el('span', { class: 'font-display', text: c.name, style: 'font-weight:600;font-size:15px;' }));
+        left.appendChild(earTag(status, status));
+        top.appendChild(left);
+        top.appendChild(el('span', { text: 'Due ' + c.dueDate, style: 'font-size:12px;color:var(--ink-soft);' }));
+        row.appendChild(top);
+        row.appendChild(el('p', { text: c.category, style: 'font-size:13px;color:var(--ink-soft);margin:4px 0 10px;' }));
+        if (c.notes) row.appendChild(el('p', { text: c.notes, style: 'font-size:13px;color:var(--ink-soft);margin-bottom:10px;' }));
+
+        var actions = el('div', { style: 'display:flex;gap:14px;' });
+        if (c.status !== 'compliant') {
+          var markBtn = el('button', { class: 'btn-link-text', text: 'Mark compliant' });
+          markBtn.addEventListener('click', function() { c.status = 'compliant'; render(); });
+          actions.appendChild(markBtn);
+        }
+        var editBtn = el('button', { class: 'btn-link-text', text: 'Edit' });
+        editBtn.addEventListener('click', function() {
+          openFormModal({ title: 'Edit compliance item', fields: fields(), initial: c, deleteLabel: 'this item',
+            validate: function(v) { if (!v.name || !v.name.trim()) return 'Give this item a name.'; },
+            onDelete: function() { state.compliance = state.compliance.filter(function(x){ return x.id !== c.id; }); render(); },
+            onSubmit: function(v) { Object.assign(c, v); render(); } });
+        });
+        actions.appendChild(editBtn);
+        row.appendChild(actions);
+        list.appendChild(row);
+      });
+    }
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  // ---------- Inspections page ----------
+  function openInspectionModal(existing) {
+      var overlay = el('div', { style: 'position:fixed;inset:0;background:rgba(35,43,34,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;' });
+      var modal = el('div', { class: 'card', style: 'width:100%;max-width:500px;padding:24px;max-height:88vh;overflow-y:auto;' });
+      var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;' });
+      head.appendChild(el('h3', { class: 'font-display', text: existing ? 'Edit inspection' : 'New inspection', style: 'font-size:19px;font-weight:600;' }));
+      var closeBtn = el('button', { text: '×', style: 'background:none;border:none;font-size:22px;color:var(--ink-soft);' });
+      closeBtn.addEventListener('click', function() { overlay.remove(); });
+      head.appendChild(closeBtn);
+      modal.appendChild(head);
+
+      var titleInput = el('input', { placeholder: 'e.g. August monthly inspection' });
+      titleInput.value = existing ? existing.title : '';
+      var dateInput = el('input', { type: 'date' });
+      dateInput.value = existing ? existing.date : todayStr();
+
+      var topRow = el('div', { style: 'display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;' });
+      topRow.appendChild(el('div', {}, [el('label', { text: 'Title', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), titleInput]));
+      topRow.appendChild(el('div', {}, [el('label', { text: 'Date', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), dateInput]));
+      modal.appendChild(topRow);
+
+      var items = existing ? existing.items.map(function(i){ return { label: i.label, checked: i.checked }; }) : INSPECTION_TEMPLATE.map(function(l){ return { label: l, checked: false }; });
+      var checklistWrap = el('div', { class: 'card-flat', style: 'padding:6px 14px;margin-bottom:16px;' });
+      items.forEach(function(item) {
+        var row = el('label', { class: 'checklist-row' });
+        var cb = el('input', { type: 'checkbox' });
+        cb.checked = item.checked;
+        cb.addEventListener('change', function() { item.checked = cb.checked; });
+        row.appendChild(cb);
+        row.appendChild(el('span', { text: item.label, style: 'font-size:14px;' }));
+        checklistWrap.appendChild(row);
+      });
+      modal.appendChild(checklistWrap);
+
+      var notesInput = el('textarea', { placeholder: 'Anything worth noting from this walkthrough' });
+      notesInput.value = existing ? existing.notes : '';
+      modal.appendChild(el('div', { style: 'margin-bottom:16px;' }, [el('label', { text: 'Notes', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), notesInput]));
+
+      var btnRow = el('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;' });
+      if (existing) {
+        var delBtn = el('button', { type: 'button', class: 'btn-outline', text: 'Delete', style: 'border-color:rgba(166,67,47,0.4);color:var(--alert);' });
+        delBtn.addEventListener('click', function() {
+          if (confirmDelete('this inspection')) { state.inspections = state.inspections.filter(function(x){ return x.id !== existing.id; }); overlay.remove(); render(); }
+        });
+        btnRow.appendChild(delBtn);
+      }
+      btnRow.appendChild(el('div', { style: 'flex:1;' }));
+      var cancelBtn = el('button', { type: 'button', class: 'btn-outline', text: 'Cancel' });
+      cancelBtn.addEventListener('click', function() { overlay.remove(); });
+      var saveBtn = el('button', { type: 'button', class: 'btn-primary', text: 'Save inspection' });
+      saveBtn.addEventListener('click', function() {
+        if (!titleInput.value.trim()) { alert('Give this inspection a title.'); return; }
+        var completedCount = items.filter(function(i){ return i.checked; }).length;
+        var record = { id: existing ? existing.id : nextId('ins'), title: titleInput.value.trim(), date: dateInput.value, items: items, notes: notesInput.value, completed: completedCount === items.length };
+        if (existing) { Object.assign(existing, record); } else { state.inspections.unshift(record); }
+        overlay.remove();
+        render();
+      });
+      btnRow.appendChild(cancelBtn); btnRow.appendChild(saveBtn);
+      modal.appendChild(btnRow);
+
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+  }
+
+  function renderInspectionsPage() {
+    var wrap = el('div', {});
+    var header = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;' });
+    header.appendChild(pageHeader('Routine checks', 'Inspections', 'A simple monthly walkthrough checklist, so nothing on the farm gets missed.'));
+    var addBtn = el('button', { class: 'btn-primary', text: '+ New inspection' });
+    header.appendChild(addBtn);
+    wrap.appendChild(header);
+
+    addBtn.addEventListener('click', function() { openInspectionModal(null); });
+
+    var list = el('div', { class: 'card', style: 'margin-top:10px;' });
+    if (state.inspections.length === 0) {
+      list.appendChild(el('p', { text: 'No inspections recorded yet.', style: 'padding:20px;color:var(--ink-soft);font-size:14px;' }));
+    } else {
+      state.inspections.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); }).forEach(function(ins, idx) {
+        var done = ins.items.filter(function(i){ return i.checked; }).length;
+        var row = el('button', { class: 'row-link', style: 'width:100%;text-align:left;padding:16px;background:none;border:none;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+        var left = el('div', {});
+        left.appendChild(el('p', { class: 'font-display', text: ins.title, style: 'font-weight:600;font-size:15px;' }));
+        left.appendChild(el('p', { text: ins.date + ' · ' + done + ' of ' + ins.items.length + ' checked', style: 'font-size:12px;color:var(--ink-soft);' }));
+        row.appendChild(left);
+        row.appendChild(earTag(ins.completed ? 'completed' : 'in progress', ins.completed ? 'healthy' : 'attention'));
+        row.addEventListener('click', function() { openInspectionModal(ins); });
+        list.appendChild(row);
+      });
+    }
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  // ---------- Security checks page ----------
+  function openSecurityCheckModal(existing) {
+    var overlay = el('div', { style: 'position:fixed;inset:0;background:rgba(35,43,34,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;' });
+    var modal = el('div', { class: 'card', style: 'width:100%;max-width:500px;padding:24px;max-height:88vh;overflow-y:auto;' });
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;' });
+    head.appendChild(el('h3', { class: 'font-display', text: existing ? 'Edit security check' : 'New security check', style: 'font-size:19px;font-weight:600;' }));
+    var closeBtn = el('button', { text: '×', style: 'background:none;border:none;font-size:22px;color:var(--ink-soft);' });
+    closeBtn.addEventListener('click', function() { overlay.remove(); });
+    head.appendChild(closeBtn);
+    modal.appendChild(head);
+
+    var titleInput = el('input', { placeholder: 'e.g. August security check' });
+    titleInput.value = existing ? existing.title : '';
+    var dateInput = el('input', { type: 'date' });
+    dateInput.value = existing ? existing.date : todayStr();
+
+    var topRow = el('div', { style: 'display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;' });
+    topRow.appendChild(el('div', {}, [el('label', { text: 'Title', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), titleInput]));
+    topRow.appendChild(el('div', {}, [el('label', { text: 'Date', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), dateInput]));
+    modal.appendChild(topRow);
+
+    var items = existing ? existing.items.map(function(i){ return { label: i.label, checked: i.checked }; }) : SECURITY_TEMPLATE.map(function(l){ return { label: l, checked: false }; });
+    var checklistWrap = el('div', { class: 'card-flat', style: 'padding:6px 14px;margin-bottom:16px;' });
+    items.forEach(function(item) {
+      var row = el('label', { class: 'checklist-row' });
+      var cb = el('input', { type: 'checkbox' });
+      cb.checked = item.checked;
+      cb.addEventListener('change', function() { item.checked = cb.checked; });
+      row.appendChild(cb);
+      row.appendChild(el('span', { text: item.label, style: 'font-size:14px;' }));
+      checklistWrap.appendChild(row);
+    });
+    modal.appendChild(checklistWrap);
+
+    var notesInput = el('textarea', { placeholder: 'Repairs needed, anything to flag as an issue' });
+    notesInput.value = existing ? existing.notes : '';
+    modal.appendChild(el('div', { style: 'margin-bottom:16px;' }, [el('label', { text: 'Notes', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), notesInput]));
+
+    var btnRow = el('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;' });
+    if (existing) {
+      var delBtn = el('button', { type: 'button', class: 'btn-outline', text: 'Delete', style: 'border-color:rgba(166,67,47,0.4);color:var(--alert);' });
+      delBtn.addEventListener('click', function() {
+        if (confirmDelete('this security check')) { state.securityChecks = state.securityChecks.filter(function(x){ return x.id !== existing.id; }); overlay.remove(); render(); }
+      });
+      btnRow.appendChild(delBtn);
+    }
+    btnRow.appendChild(el('div', { style: 'flex:1;' }));
+    var cancelBtn = el('button', { type: 'button', class: 'btn-outline', text: 'Cancel' });
+    cancelBtn.addEventListener('click', function() { overlay.remove(); });
+    var saveBtn = el('button', { type: 'button', class: 'btn-primary', text: 'Save check' });
+    saveBtn.addEventListener('click', function() {
+      if (!titleInput.value.trim()) { alert('Give this check a title.'); return; }
+      var completedCount = items.filter(function(i){ return i.checked; }).length;
+      var record = { id: existing ? existing.id : nextId('sec'), title: titleInput.value.trim(), date: dateInput.value, items: items, notes: notesInput.value, completed: completedCount === items.length };
+      if (existing) { Object.assign(existing, record); } else { state.securityChecks.unshift(record); }
+      overlay.remove();
+      render();
+    });
+    btnRow.appendChild(cancelBtn); btnRow.appendChild(saveBtn);
+    modal.appendChild(btnRow);
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  }
+
+  function renderSecurityPage() {
+    var wrap = el('div', {});
+    var header = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;' });
+    header.appendChild(pageHeader('Keep the farm secure', 'Security checks', 'Fencing, electric fence power, gates, locks, cameras and alarms — a regular walk-around so nothing gets missed. Anything broken can be logged straight into Issues.'));
+    var addBtn = el('button', { class: 'btn-primary', text: '+ New security check' });
+    header.appendChild(addBtn);
+    wrap.appendChild(header);
+
+    addBtn.addEventListener('click', function() { openSecurityCheckModal(null); });
+
+    var list = el('div', { class: 'card', style: 'margin-top:10px;' });
+    if (state.securityChecks.length === 0) {
+      list.appendChild(el('p', { text: 'No security checks recorded yet.', style: 'padding:20px;color:var(--ink-soft);font-size:14px;' }));
+    } else {
+      state.securityChecks.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); }).forEach(function(sec, idx) {
+        var done = sec.items.filter(function(i){ return i.checked; }).length;
+        var row = el('button', { class: 'row-link', style: 'width:100%;text-align:left;padding:16px;background:none;border:none;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+        var left = el('div', {});
+        left.appendChild(el('p', { class: 'font-display', text: sec.title, style: 'font-weight:600;font-size:15px;' }));
+        left.appendChild(el('p', { text: sec.date + ' · ' + done + ' of ' + sec.items.length + ' checked', style: 'font-size:12px;color:var(--ink-soft);' }));
+        row.appendChild(left);
+        row.appendChild(earTag(sec.completed ? 'completed' : 'in progress', sec.completed ? 'healthy' : 'attention'));
+        row.addEventListener('click', function() { openSecurityCheckModal(sec); });
+        list.appendChild(row);
+      });
+    }
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  // ---------- Farm records (low-key extras) ----------
+  var RECORD_TABS = {
+    'Workers': {
+      stateKey: 'workers', idPrefix: 'wrk', emptyText: 'No workers added yet.',
+      fields: [
+        { key: 'name', label: 'Name' },
+        { key: 'role', label: 'Role', placeholder: 'e.g. Herdsman, general labour' },
+        { key: 'phone', label: 'Phone number' },
+        { key: 'notes', label: 'Notes', type: 'textarea' }
+      ],
+      renderRow: function(item) { return { title: item.name, subtitle: [item.role, item.phone].filter(Boolean).join(' · ') }; }
+    },
+    'Contacts': {
+      stateKey: 'contacts', idPrefix: 'con', emptyText: 'No contacts added yet.',
+      fields: [
+        { key: 'name', label: 'Name' },
+        { key: 'type', label: 'Type', type: 'select', options: [
+          { value: 'Vet', label: 'Vet' }, { value: 'Extension officer', label: 'Extension officer' }, { value: 'Co-op', label: 'Co-op' },
+          { value: 'Abattoir', label: 'Abattoir' }, { value: 'Supplier', label: 'Supplier' }, { value: 'Other', label: 'Other' }
+        ] },
+        { key: 'phone', label: 'Phone number' },
+        { key: 'notes', label: 'Notes', type: 'textarea' }
+      ],
+      renderRow: function(item) { return { title: item.name, subtitle: [item.type, item.phone].filter(Boolean).join(' · ') }; }
+    },
+    'Grazing': {
+      stateKey: 'grazingLogs', idPrefix: 'grz', emptyText: 'No camps logged yet.',
+      fields: [
+        { key: 'camp', label: 'Camp / paddock name' },
+        { key: 'status', label: 'Status', type: 'select', options: [{ value: 'grazing', label: 'Grazing' }, { value: 'resting', label: 'Resting' }] },
+        { key: 'date', label: 'Date moved', type: 'date' },
+        { key: 'notes', label: 'Notes', type: 'textarea' }
+      ],
+      renderRow: function(item) { return { title: item.camp, subtitle: (item.status === 'grazing' ? 'Grazing' : 'Resting') + (item.date ? ' · since ' + item.date : '') }; }
+    },
+    'Water & Rainfall': {
+      stateKey: 'waterLogs', idPrefix: 'wtr', emptyText: 'No water or rainfall entries yet.',
+      fields: [
+        { key: 'type', label: 'Type', type: 'select', options: [
+          { value: 'Rainfall (mm)', label: 'Rainfall (mm)' }, { value: 'Dam level (%)', label: 'Dam level (%)' },
+          { value: 'Borehole (m)', label: 'Borehole (m)' }, { value: 'Tank level (%)', label: 'Tank level (%)' }
+        ] },
+        { key: 'value', label: 'Value', type: 'number' },
+        { key: 'date', label: 'Date', type: 'date' },
+        { key: 'notes', label: 'Notes', type: 'textarea' }
+      ],
+      renderRow: function(item) { return { title: item.type + ': ' + item.value, subtitle: item.date }; }
+    },
+    'Load shedding': {
+      stateKey: 'loadSheddingLogs', idPrefix: 'ls', emptyText: 'No load shedding logged yet.',
+      fields: [
+        { key: 'date', label: 'Date', type: 'date' },
+        { key: 'startTime', label: 'Start time', placeholder: 'e.g. 14:00' },
+        { key: 'endTime', label: 'End time', placeholder: 'e.g. 16:30' },
+        { key: 'affected', label: 'Equipment affected', placeholder: 'e.g. Borehole pump, milking machine' },
+        { key: 'notes', label: 'Notes', type: 'textarea' }
+      ],
+      renderRow: function(item) { return { title: item.date + (item.startTime ? ' · ' + item.startTime + '–' + item.endTime : ''), subtitle: item.affected || '' }; }
+    }
+  };
+
+  function renderRecordTab(tabName) {
+    var cfg = RECORD_TABS[tabName];
+    var wrap = el('div', {});
+    var addBtn = el('button', { class: 'btn-primary', text: '+ Add' });
+    addBtn.addEventListener('click', function() {
+      openFormModal({
+        title: 'Add ' + tabName.replace(/s$/, ''),
+        fields: cfg.fields,
+        initial: {},
+        onSubmit: function(v) { state[cfg.stateKey].unshift(Object.assign({ id: nextId(cfg.idPrefix) }, v)); render(); }
+      });
+    });
+    wrap.appendChild(el('div', { style: 'display:flex;justify-content:flex-end;margin-bottom:12px;' }, [addBtn]));
+
+    var list = el('div', { class: 'card' });
+    var items = state[cfg.stateKey];
+    if (items.length === 0) {
+      list.appendChild(el('p', { text: cfg.emptyText, style: 'padding:18px;color:var(--ink-soft);font-size:14px;' }));
+    } else {
+      items.forEach(function(item, idx) {
+        var row = cfg.renderRow(item);
+        var rowEl = el('div', { class: 'row-link', style: 'padding:13px 16px;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+        var left = el('div', {});
+        left.appendChild(el('p', { text: row.title, style: 'font-size:14px;font-weight:500;' }));
+        if (row.subtitle) left.appendChild(el('p', { text: row.subtitle, style: 'font-size:12px;color:var(--ink-soft);margin-top:2px;' }));
+        rowEl.appendChild(left);
+        var editBtn = el('button', { class: 'btn-link-text', text: 'Edit' });
+        editBtn.addEventListener('click', function() {
+          openFormModal({
+            title: 'Edit', fields: cfg.fields, initial: item, deleteLabel: row.title,
+            onDelete: function() { state[cfg.stateKey] = state[cfg.stateKey].filter(function(x) { return x.id !== item.id; }); render(); },
+            onSubmit: function(v) { Object.assign(item, v); render(); }
+          });
+        });
+        rowEl.appendChild(editBtn);
+        list.appendChild(rowEl);
+      });
+    }
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  function renderFarmRecordsPage() {
+    var wrap = el('div', {});
+    wrap.appendChild(pageHeader('The everyday extras', 'Farm records', 'Workers, contacts, grazing camps, water levels, and load shedding — quick logs for the practical side of running the farm.'));
+    var tabs = Object.keys(RECORD_TABS);
+    wrap.appendChild(simpleTabBar(tabs, state.uiTabs.records, function(t) { state.uiTabs.records = t; render(); }));
+    wrap.appendChild(renderRecordTab(state.uiTabs.records));
+    return wrap;
+  }
+
+  // ---------- Stock control page ----------
+  function renderStockPage() {
+    var wrap = el('div', {});
+    var header = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;' });
+    header.appendChild(pageHeader('Feed, medicine, supplies', 'Stock control', 'What is coming in, what is going out, and what it is costing you.'));
+    var addBtn = el('button', { class: 'btn-primary', text: '+ Add stock item' });
+    header.appendChild(addBtn);
+    wrap.appendChild(header);
+
+    function itemFields() {
+      return [
+        { key: 'name', label: 'Item name', placeholder: 'e.g. Cattle feed pellets' },
+        { key: 'unit', label: 'Unit', placeholder: 'e.g. bags, litres, kg' },
+        { key: 'quantity', label: 'Current quantity', type: 'number' },
+        { key: 'costPerUnit', label: 'Cost per unit (R)', type: 'number' },
+        { key: 'reorderLevel', label: 'Reorder alert level', type: 'number', placeholder: 'Flag as low stock at or below this' }
+      ];
+    }
+
+    addBtn.addEventListener('click', function() {
+      openFormModal({ title: 'Add stock item', fields: itemFields(), initial: { quantity: 0, costPerUnit: 0 },
+        validate: function(v) { if (!v.name || !v.name.trim()) return 'Give this item a name.'; },
+        onSubmit: function(v) { state.stockItems.push(Object.assign({ id: nextId('stk') }, v)); render(); } });
+    });
+
+    wrap.appendChild(simpleTabBar(['Inventory', 'Movements'], state.uiTabs.stock, function(t) { state.uiTabs.stock = t; render(); }));
+
+    if (state.uiTabs.stock === 'Inventory') {
+      var itemsCard = el('div', { class: 'card' });
+      if (state.stockItems.length === 0) {
+        itemsCard.appendChild(el('p', { text: 'No stock items added yet.', style: 'padding:18px;color:var(--ink-soft);font-size:14px;' }));
+      } else {
+        state.stockItems.forEach(function(item, idx) {
+          var low = item.quantity <= (item.reorderLevel != null ? item.reorderLevel : 2);
+          var row = el('div', { style: 'padding:14px 16px;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+          var top = el('div', { class: 'row-link' });
+          top.appendChild(el('span', { class: 'font-display', text: item.name, style: 'font-weight:600;font-size:14px;' }));
+          var rightTop = el('div', { style: 'display:flex;align-items:center;gap:8px;' });
+          if (low) rightTop.appendChild(earTag('low stock', 'attention'));
+          rightTop.appendChild(el('span', { text: item.quantity + ' ' + item.unit + ' on hand', style: 'font-size:13px;color:var(--ink-soft);' }));
+          top.appendChild(rightTop);
+          row.appendChild(top);
+          row.appendChild(el('p', { text: fmtR(item.costPerUnit) + ' per ' + item.unit.replace(/s$/, ''), style: 'font-size:12px;color:var(--ink-soft);margin:2px 0 10px;' }));
+
+          var actions = el('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;' });
+          var inBtn = el('button', { class: 'btn-outline', text: '+ Stock in', style: 'padding:7px 12px;font-size:13px;' });
+          var outBtn = el('button', { class: 'btn-outline', text: '– Stock out', style: 'padding:7px 12px;font-size:13px;' });
+          var editBtn = el('button', { class: 'btn-link-text', text: 'Edit' });
+          var delBtn = el('button', { class: 'btn-danger-text', text: 'Delete' });
+
+          function openMoveModal(type) {
+            openFormModal({
+              title: (type === 'in' ? 'Stock in — ' : 'Stock out — ') + item.name,
+              fields: [
+                { key: 'date', label: 'Date', type: 'date' },
+                { key: 'quantity', label: 'Quantity (' + item.unit + ')', type: 'number' },
+                { key: 'cost', label: type === 'in' ? 'Total cost (R)' : 'Value (R, optional)', type: 'number' },
+                { key: 'note', label: 'Note', placeholder: type === 'in' ? 'e.g. Monthly feed order' : 'e.g. Fed to herd' }
+              ],
+              initial: { cost: 0, date: todayStr() },
+              validate: function(v) {
+                if (!v.quantity || v.quantity <= 0) return 'Enter a quantity greater than zero.';
+                if (type === 'out' && v.quantity > item.quantity) return 'Only ' + item.quantity + ' ' + item.unit + ' available.';
+              },
+              onSubmit: function(v) {
+                item.quantity = type === 'in' ? item.quantity + v.quantity : Math.max(0, item.quantity - v.quantity);
+                state.stockMoves.unshift({ id: nextId('mov'), itemId: item.id, date: v.date || todayStr(), type: type, quantity: v.quantity, cost: v.cost, note: v.note });
+                if (type === 'in' && v.cost) state.farmFinance.unshift({ id: nextId('gfin'), date: v.date || todayStr(), type: 'expense', label: 'Stock purchase — ' + item.name, amount: -Math.abs(v.cost) });
+                render();
+              }
+            });
+          }
+          inBtn.addEventListener('click', function() { openMoveModal('in'); });
+          outBtn.addEventListener('click', function() { openMoveModal('out'); });
+          editBtn.addEventListener('click', function() {
+            openFormModal({ title: 'Edit ' + item.name, fields: itemFields(), initial: item, deleteLabel: item.name,
+              validate: function(v) { if (!v.name || !v.name.trim()) return 'Give this item a name.'; },
+              onDelete: function() { state.stockItems = state.stockItems.filter(function(x){ return x.id !== item.id; }); render(); },
+              onSubmit: function(v) { Object.assign(item, v); render(); } });
+          });
+          delBtn.addEventListener('click', function() {
+            if (confirmDelete(item.name)) { state.stockItems = state.stockItems.filter(function(x){ return x.id !== item.id; }); render(); }
+          });
+
+          actions.appendChild(inBtn); actions.appendChild(outBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
+          row.appendChild(actions);
+          itemsCard.appendChild(row);
+        });
+      }
+      wrap.appendChild(itemsCard);
+    } else {
+      var movesCard = el('div', { class: 'card' });
+      var moves = state.stockMoves.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+      if (moves.length === 0) {
+        movesCard.appendChild(el('p', { text: 'No stock movements logged yet.', style: 'padding:18px;color:var(--ink-soft);font-size:14px;' }));
+      } else {
+        moves.forEach(function(m, idx) {
+          var item = state.stockItems.filter(function(i){ return i.id === m.itemId; })[0];
+          var row = el('div', { class: 'row-link', style: 'padding:12px 16px;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+          var left = el('div', {});
+          var leftTop = el('div', { style: 'display:flex;align-items:center;gap:10px;' });
+          leftTop.appendChild(earTag(m.type === 'in' ? 'stock in' : 'stock out', m.type === 'in' ? 'healthy' : 'neutral'));
+          leftTop.appendChild(el('span', { text: (item ? item.name : 'Unknown item') + ' · ' + m.quantity + (item ? ' ' + item.unit : ''), style: 'font-size:14px;' }));
+          left.appendChild(leftTop);
+          if (m.note) left.appendChild(el('p', { text: m.note, style: 'font-size:12px;color:var(--ink-soft);margin-top:3px;' }));
+          row.appendChild(left);
+          row.appendChild(el('span', { text: m.date, style: 'font-size:12px;color:var(--ink-soft);white-space:nowrap;' }));
+          movesCard.appendChild(row);
+        });
+      }
+      wrap.appendChild(movesCard);
+    }
+
+    return wrap;
+  }
+
+  // ---------- Finance page ----------
+  function financeEntries() {
+    var entries = [];
+    state.animals.forEach(function(a) { a.finance.forEach(function(f) { entries.push(Object.assign({}, f, { source: a.name, isFarm: false, animalId: a.id })); }); });
+    state.farmFinance.forEach(function(f) { entries.push(Object.assign({}, f, { source: 'Farm', isFarm: true })); });
+    entries.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    return entries;
+  }
+
+  function openFarmTransactionModal() {
+    openFormModal({
+      title: 'Add farm transaction',
+      fields: [
+        { key: 'date', label: 'Date', type: 'date' },
+        { key: 'type', label: 'Type', type: 'select', options: [{ value: 'income', label: 'Income' }, { value: 'expense', label: 'Expense' }] },
+        { key: 'label', label: 'Description', placeholder: 'e.g. Grazing land rental' },
+        { key: 'amount', label: 'Amount (R)', type: 'number' }
+      ],
+      initial: { date: todayStr(), type: 'income' },
+      validate: function(v) { if (!v.label || !v.label.trim()) return 'Add a short description.'; if (!v.amount || v.amount <= 0) return 'Enter an amount greater than zero.'; },
+      onSubmit: function(v) {
+        var amt = Math.abs(v.amount) * (v.type === 'expense' ? -1 : 1);
+        state.farmFinance.unshift({ id: nextId('gfin'), date: v.date || todayStr(), type: v.type, label: v.label.trim(), amount: amt });
+        render();
+      }
+    });
+  }
+
+  function renderFinancePage() {
+    var wrap = el('div', {});
+    var header = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;' });
+    header.appendChild(pageHeader('Whole farm', 'Finances'));
+    var addBtn = el('button', { class: 'btn-primary', text: '+ Add transaction' });
+    addBtn.addEventListener('click', openFarmTransactionModal);
+    header.appendChild(addBtn);
+    wrap.appendChild(header);
+
+    var entries = financeEntries();
+    var income = entries.filter(function(e){return e.type==='income';}).reduce(function(s,e){return s+e.amount;},0);
+    var expense = entries.filter(function(e){return e.type==='expense';}).reduce(function(s,e){return s+e.amount;},0);
+    var net = income + expense;
+
+    wrap.appendChild(simpleTabBar(['Overview', 'Transactions'], state.uiTabs.finance, function(t) { state.uiTabs.finance = t; render(); }));
+
+    if (state.uiTabs.finance === 'Overview') {
+      var stats = el('div', { style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px;' });
+      stats.appendChild(statCard('Income', fmtR(income)));
+      stats.appendChild(statCard('Expenses', fmtR(Math.abs(expense)), 'alert'));
+      stats.appendChild(statCard('Net', (net >= 0 ? '+' : '') + fmtR(net)));
+      wrap.appendChild(stats);
+
+      var bySource = {};
+      entries.forEach(function(e) { bySource[e.source] = (bySource[e.source] || 0) + e.amount; });
+      var sourceRows = Object.keys(bySource).map(function(k){ return [k, bySource[k]]; }).sort(function(a,b){ return Math.abs(b[1]) - Math.abs(a[1]); }).slice(0, 8);
+
+      var section = el('div', {});
+      section.appendChild(el('h3', { class: 'font-display', text: 'Net by source', style: 'font-size:16px;font-weight:600;margin-bottom:10px;' }));
+      var card = el('div', { class: 'card' });
+      if (sourceRows.length === 0) {
+        card.appendChild(el('p', { text: 'No transactions yet.', style: 'padding:18px;color:var(--ink-soft);font-size:14px;' }));
+      } else {
+        sourceRows.forEach(function(r, idx) {
+          var row = el('div', { class: 'row-link', style: 'padding:12px 16px;' + (idx > 0 ? 'border-top:1px solid var(--border);' : '') });
+          row.appendChild(el('span', { text: r[0], style: 'font-size:14px;' }));
+          row.appendChild(el('span', { text: (r[1] >= 0 ? '+' : '') + fmtR(r[1]), style: 'font-family:"IBM Plex Mono",monospace;font-weight:600;color:' + (r[1] >= 0 ? 'var(--primary)' : 'var(--alert)') }));
+          card.appendChild(row);
+        });
+      }
+      section.appendChild(card);
+      wrap.appendChild(section);
+    } else {
+      var section2 = el('div', {});
+      var card2 = el('div', { class: 'card' });
+      if (entries.length === 0) {
+        card2.appendChild(el('p', { text: 'No transactions yet.', style: 'padding:20px;color:var(--ink-soft);font-size:14px;' }));
+      } else {
+        entries.forEach(function(e, i) {
+          var row = el('div', { class: 'row-link', style: 'padding:12px 16px;flex-wrap:wrap;gap:8px;' + (i > 0 ? 'border-top:1px solid var(--border);' : '') });
+          var left = el('div', { style: 'display:flex;align-items:center;gap:10px;' });
+          left.appendChild(earTag(e.source, 'neutral'));
+          left.appendChild(el('span', { text: e.label, style: 'font-size:14px;' }));
+          row.appendChild(left);
+          var right = el('div', { style: 'display:flex;align-items:center;gap:12px;' });
+          right.appendChild(el('span', { text: e.date, style: 'font-size:12px;color:var(--ink-soft);' }));
+          right.appendChild(el('span', { text: (e.amount >= 0 ? '+' : '') + fmtR(e.amount), style: 'font-family:"IBM Plex Mono",monospace;font-weight:600;color:' + (e.amount >= 0 ? 'var(--primary)' : 'var(--alert)') }));
+          if (e.isFarm) {
+            var delFin = el('button', { class: 'btn-danger-text', text: 'Delete' });
+            delFin.addEventListener('click', function() {
+              if (confirmDelete('this transaction')) { state.farmFinance = state.farmFinance.filter(function(x){ return x.id !== e.id; }); render(); }
+            });
+            right.appendChild(delFin);
+          } else {
+            var animalRef = state.animals.filter(function(a){ return a.id === e.animalId; })[0];
+            if (animalRef) {
+              var viewLink = el('button', { class: 'btn-link-text', text: 'View →' });
+              viewLink.addEventListener('click', function() { navigate({ page: 'species', speciesId: animalRef.speciesId, animalId: animalRef.id }); });
+              right.appendChild(viewLink);
+            }
+          }
+          row.appendChild(right);
+          card2.appendChild(row);
+        });
+      }
+      section2.appendChild(card2);
+      wrap.appendChild(section2);
+    }
+    return wrap;
+  }
+
+  // ---------- Insights page (charts) ----------
+  function buildActivityMap() {
+    var map = {};
+    function bump(d) { if (!d) return; map[d] = (map[d] || 0) + 1; }
+    state.animals.forEach(function(a) {
+      a.events.forEach(function(e) { bump(e.date); });
+      a.finance.forEach(function(f) { bump(f.date); });
+    });
+    state.farmFinance.forEach(function(f) { bump(f.date); });
+    state.issues.forEach(function(i) { bump(i.date); });
+    state.inspections.forEach(function(i) { bump(i.date); });
+    state.securityChecks.forEach(function(i) { bump(i.date); });
+    state.stockMoves.forEach(function(m) { bump(m.date); });
+    return map;
+  }
+
+  // Generic small SVG line/area chart builder — no external library needed.
+  function buildLineChartSVG(series, xLabels, opts) {
+    opts = opts || {};
+    var W = opts.width || 760, H = opts.height || 240;
+    var padL = 48, padR = 16, padT = 16, padB = 30;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var allValues = [0];
+    series.forEach(function(s) { s.values.forEach(function(v) { allValues.push(v); }); });
+    var maxV = Math.max.apply(null, allValues);
+    var minV = Math.min.apply(null, allValues.concat([0]));
+    if (maxV === minV) maxV = minV + 1;
+    var n = xLabels.length;
+    function xAt(i) { return padL + (n <= 1 ? innerW / 2 : (innerW * i / (n - 1))); }
+    function yAt(v) { var t = (v - minV) / (maxV - minV); return padT + innerH * (1 - t); }
+    var parts = [];
+    parts.push('<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;font-family:Work Sans, sans-serif;">');
+    var gridCount = 4;
+    for (var g = 0; g <= gridCount; g++) {
+      var gv = minV + (maxV - minV) * g / gridCount;
+      var gy = yAt(gv);
+      parts.push('<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="rgba(91,99,85,0.15)" stroke-width="1" />');
+      parts.push('<text x="' + (padL - 8) + '" y="' + (gy + 4) + '" font-size="10" fill="#5B6355" text-anchor="end">' + (opts.yFormat ? opts.yFormat(gv) : Math.round(gv)) + '</text>');
+    }
+    var labelStep = Math.max(1, Math.ceil(n / 7));
+    xLabels.forEach(function(lab, i) {
+      if (i % labelStep !== 0 && i !== n - 1) return;
+      parts.push('<text x="' + xAt(i) + '" y="' + (H - 8) + '" font-size="10" fill="#5B6355" text-anchor="middle">' + lab + '</text>');
+    });
+    series.forEach(function(s) {
+      var pts = s.values.map(function(v, i) { return xAt(i) + ',' + yAt(v); }).join(' ');
+      if (s.fill) {
+        var areaPts = pts + ' ' + xAt(n - 1) + ',' + yAt(minV) + ' ' + xAt(0) + ',' + yAt(minV);
+        parts.push('<polygon points="' + areaPts + '" fill="' + s.color + '" opacity="0.16" />');
+      }
+      parts.push('<polyline points="' + pts + '" fill="none" stroke="' + s.color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />');
+      s.values.forEach(function(v, i) {
+        parts.push('<circle cx="' + xAt(i) + '" cy="' + yAt(v) + '" r="3.2" fill="' + s.color + '"><title>' + xLabels[i] + ': ' + (opts.yFormat ? opts.yFormat(v) : v) + '</title></circle>');
+      });
+    });
+    parts.push('</svg>');
+    return parts.join('');
+  }
+
+  function renderActivityChart() {
+    var map = buildActivityMap();
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var start = new Date(today); start.setDate(today.getDate() - (12 * 7 - 1));
+    start.setDate(start.getDate() - start.getDay());
+    var labels = [], values = [];
+    for (var w = 0; w < 12; w++) {
+      var wkStart = new Date(start); wkStart.setDate(start.getDate() + w * 7);
+      var sum = 0;
+      for (var d = 0; d < 7; d++) {
+        var day = new Date(wkStart); day.setDate(wkStart.getDate() + d);
+        if (day > today) continue;
+        sum += map[day.toISOString().slice(0, 10)] || 0;
+      }
+      values.push(sum);
+      labels.push(wkStart.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short' }));
+    }
+    var svg = buildLineChartSVG([{ name: 'Activity', color: '#2F4A38', fill: true, values: values }], labels, { yFormat: function(v) { return Math.round(v); } });
+    var wrap = el('div', { class: 'card', style: 'padding:18px;' });
+    wrap.appendChild(el('div', { html: svg }));
+    var total = values.reduce(function(s, v) { return s + v; }, 0);
+    wrap.appendChild(el('p', { text: total + ' logged actions over the last 12 weeks — health and breeding events, transactions, stock moves, inspections, security checks and issues, added together per week.', style: 'font-size:12px;color:var(--ink-soft);margin-top:8px;' }));
+    return wrap;
+  }
+
+  function renderHealthBarChart() {
+    var statuses = [
+      { key: 'healthy', color: '#3F7A56', label: 'Healthy' },
+      { key: 'attention', color: '#A6432F', label: 'Attention' },
+      { key: 'sold', color: '#C98A2C', label: 'Sold' },
+      { key: 'deceased', color: '#5B6355', label: 'Deceased' }
+    ];
+    var wrap = el('div', { class: 'card', style: 'padding:18px;' });
+    var legend = el('div', { style: 'display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;' });
+    statuses.forEach(function(s) {
+      var item = el('div', { style: 'display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft);' });
+      item.appendChild(el('span', { style: 'width:10px;height:10px;border-radius:3px;background:' + s.color + ';display:inline-block;' }));
+      item.appendChild(el('span', { text: s.label }));
+      legend.appendChild(item);
+    });
+    wrap.appendChild(legend);
+    var livestockIds = state.farm.speciesIds.filter(function(id) { return speciesById(id).tracking !== 'crop'; });
+    if (livestockIds.length === 0) {
+      wrap.appendChild(el('p', { text: 'No livestock being tracked yet.', style: 'color:var(--ink-soft);font-size:13px;' }));
+      return wrap;
+    }
+    livestockIds.forEach(function(id) {
+      var sp = speciesById(id);
+      var counts = { healthy: 0, attention: 0, sold: 0, deceased: 0 };
+      state.animals.forEach(function(a) { if (a.speciesId === id) counts[a.status] = (counts[a.status] || 0) + 1; });
+      var total = counts.healthy + counts.attention + counts.sold + counts.deceased;
+      var row = el('div', { style: 'margin-bottom:16px;' });
+      var top = el('div', { style: 'display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px;' });
+      top.appendChild(el('span', { text: sp.icon + ' ' + sp.label }));
+      top.appendChild(el('span', { text: total + ' total', style: 'color:var(--ink-soft);font-weight:500;' }));
+      row.appendChild(top);
+      var barOuter = el('div', { style: 'display:flex;width:100%;height:24px;border-radius:6px;overflow:hidden;background:var(--parchment-alt);' });
+      if (total === 0) {
+        barOuter.appendChild(el('div', { style: 'width:100%;' }));
+      } else {
+        statuses.forEach(function(s) {
+          var v = counts[s.key];
+          if (v <= 0) return;
+          var pct = (v / total * 100);
+          var seg = el('div', { title: s.label + ': ' + v, style: 'width:' + pct + '%;background:' + s.color + ';display:flex;align-items:center;justify-content:center;' });
+          if (pct > 8) seg.appendChild(el('span', { text: String(v), style: 'font-size:11px;color:#fff;font-weight:600;' }));
+          barOuter.appendChild(seg);
+        });
+      }
+      row.appendChild(barOuter);
+      wrap.appendChild(row);
+    });
+    if (state.farm.speciesIds.some(function(id) { return speciesById(id).tracking === 'crop'; })) {
+      wrap.appendChild(el('p', { text: 'Crop plots use growing / ready / harvested / failed instead — see the Headcount summary report for those.', style: 'font-size:11px;color:var(--ink-soft);margin-top:6px;' }));
+    }
+    return wrap;
+  }
+
+  function renderCashflowChart() {
+    var months = [];
+    var base = new Date(); base.setDate(1);
+    for (var i = 5; i >= 0; i--) months.push(new Date(base.getFullYear(), base.getMonth() - i, 1));
+    function key(m) { return m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0'); }
+    var incomeByMonth = {}, expenseByMonth = {};
+    months.forEach(function(m) { incomeByMonth[key(m)] = 0; expenseByMonth[key(m)] = 0; });
+    financeEntries().forEach(function(f) {
+      var k = key(new Date(f.date));
+      if (incomeByMonth[k] == null) return;
+      if (f.amount >= 0) incomeByMonth[k] += f.amount; else expenseByMonth[k] += Math.abs(f.amount);
+    });
+    var labels = months.map(function(m) { return m.toLocaleString('en-ZA', { month: 'short' }); });
+    var incomeVals = months.map(function(m) { return incomeByMonth[key(m)]; });
+    var expenseVals = months.map(function(m) { return expenseByMonth[key(m)]; });
+    var svg = buildLineChartSVG([
+      { name: 'Income', color: '#3F7A56', values: incomeVals },
+      { name: 'Expenses', color: '#A6432F', values: expenseVals }
+    ], labels, { yFormat: function(v) { return fmtR(v); } });
+    var wrap = el('div', { class: 'card', style: 'padding:18px;' });
+    var legend = el('div', { style: 'display:flex;gap:16px;margin-bottom:8px;' });
+    [['Income', '#3F7A56'], ['Expenses', '#A6432F']].forEach(function(l) {
+      var item = el('div', { style: 'display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft);' });
+      item.appendChild(el('span', { style: 'width:14px;height:3px;border-radius:2px;background:' + l[1] + ';display:inline-block;' }));
+      item.appendChild(el('span', { text: l[0] }));
+      legend.appendChild(item);
+    });
+    wrap.appendChild(legend);
+    wrap.appendChild(el('div', { html: svg }));
+    return wrap;
+  }
+
+  function renderInsightsPage() {
+    var wrap = el('div', {});
+    wrap.appendChild(pageHeader('See it at a glance', 'Insights', 'Where the work has been, how health is spread across species, and how cash moves month to month.'));
+    wrap.appendChild(simpleTabBar(['Activity', 'Health status', 'Cash flow'], state.uiTabs.insights, function(t) { state.uiTabs.insights = t; render(); }));
+
+    if (state.uiTabs.insights === 'Activity') {
+      wrap.appendChild(el('h3', { class: 'font-display', text: 'Farm activity, last 12 weeks', style: 'font-size:16px;font-weight:600;margin-bottom:10px;' }));
+      wrap.appendChild(renderActivityChart());
+    } else if (state.uiTabs.insights === 'Health status') {
+      wrap.appendChild(el('h3', { class: 'font-display', text: 'Health status by species', style: 'font-size:16px;font-weight:600;margin-bottom:10px;' }));
+      wrap.appendChild(renderHealthBarChart());
+    } else {
+      wrap.appendChild(el('h3', { class: 'font-display', text: 'Cash flow, last 6 months', style: 'font-size:16px;font-weight:600;margin-bottom:10px;' }));
+      wrap.appendChild(renderCashflowChart());
+    }
+    return wrap;
+  }
+
+  // ---------- Reports ----------
+  function simpleTable(headers, rows) {
+    var table = el('table', { style: 'width:100%;border-collapse:collapse;font-size:13px;' });
+    var thead = el('tr', {});
+    headers.forEach(function(h) { thead.appendChild(el('th', { text: h, style: 'text-align:left;padding:8px 6px;border-bottom:2px solid var(--border);font-size:11px;text-transform:uppercase;color:var(--ink-soft);' })); });
+    table.appendChild(thead);
+    rows.forEach(function(r) {
+      var tr = el('tr', {});
+      r.forEach(function(c) { tr.appendChild(el('td', { text: String(c), style: 'padding:7px 6px;border-bottom:1px solid var(--border);' })); });
+      table.appendChild(tr);
+    });
+    return table;
+  }
+  function emptyNote(text) { return el('p', { text: text, style: 'color:var(--ink-soft);font-size:13px;' }); }
+
+  function buildHeadcountReport() {
+    var wrap = el('div', {});
+    var livestockIds = state.farm.speciesIds.filter(function(id) { return speciesById(id).tracking !== 'crop'; });
+    var cropIds = state.farm.speciesIds.filter(function(id) { return speciesById(id).tracking === 'crop'; });
+    if (livestockIds.length) {
+      var rows = livestockIds.map(function(id) {
+        var sp = speciesById(id);
+        var list = state.animals.filter(function(a) { return a.speciesId === id; });
+        var total = list.reduce(function(s, a) { return s + (a.tracking === 'flock' ? (a.count || 0) : 1); }, 0);
+        function c(status) { return list.filter(function(a) { return a.status === status; }).length; }
+        return [sp.label, total, c('healthy'), c('attention'), c('sold'), c('deceased')];
+      });
+      wrap.appendChild(el('h4', { class: 'font-display', text: 'Livestock', style: 'font-size:14px;font-weight:600;margin-bottom:6px;' }));
+      wrap.appendChild(simpleTable(['Species', 'Total', 'Healthy', 'Attention', 'Sold', 'Deceased'], rows));
+    }
+    if (cropIds.length) {
+      var cropRows = cropIds.map(function(id) {
+        var sp = speciesById(id);
+        var list = state.animals.filter(function(a) { return a.speciesId === id; });
+        function c(status) { return list.filter(function(a) { return a.status === status; }).length; }
+        return [sp.label, list.length, c('growing'), c('ready'), c('harvested'), c('failed')];
+      });
+      wrap.appendChild(el('h4', { class: 'font-display', text: 'Crops', style: 'font-size:14px;font-weight:600;margin:' + (livestockIds.length ? '16px 0 6px' : '0 0 6px') + ';' }));
+      wrap.appendChild(simpleTable(['Crop', 'Plots', 'Growing', 'Ready', 'Harvested', 'Failed'], cropRows));
+    }
+    if (!livestockIds.length && !cropIds.length) wrap.appendChild(emptyNote('No livestock or crops recorded yet.'));
+    return wrap;
+  }
+  function buildHealthBreedingReport() {
+    var rows = [];
+    state.animals.forEach(function(a) { a.events.filter(function(e) { return e.type === 'health' || e.type === 'breeding'; }).forEach(function(e) { rows.push([e.date, a.name, e.type, e.note]); }); });
+    rows.sort(function(a, b) { return new Date(b[0]) - new Date(a[0]); });
+    return rows.length ? simpleTable(['Date', 'Animal', 'Type', 'Note'], rows) : emptyNote('No health or breeding events recorded yet.');
+  }
+  function buildProductionReport() {
+    var rows = [];
+    state.animals.forEach(function(a) { var sp = speciesById(a.speciesId); if (sp.prodKey && a[sp.prodKey] != null) rows.push([a.name, sp.label, sp.prodLabel, a[sp.prodKey]]); });
+    var logRows = [];
+    state.animals.forEach(function(a) { a.events.filter(function(e) { return e.type === 'production'; }).forEach(function(e) { logRows.push([e.date, a.name, e.note]); }); });
+    logRows.sort(function(a, b) { return new Date(b[0]) - new Date(a[0]); });
+    var wrap = el('div', {});
+    wrap.appendChild(el('h4', { class: 'font-display', text: 'Current production', style: 'font-size:14px;font-weight:600;margin-bottom:6px;' }));
+    wrap.appendChild(rows.length ? simpleTable(['Animal/flock', 'Species', 'Metric', 'Value'], rows) : emptyNote('No production figures recorded.'));
+    wrap.appendChild(el('h4', { class: 'font-display', text: 'Production log', style: 'font-size:14px;font-weight:600;margin:16px 0 6px;' }));
+    wrap.appendChild(logRows.length ? simpleTable(['Date', 'Animal/flock', 'Note'], logRows) : emptyNote('No production events logged.'));
+    return wrap;
+  }
+  function buildFinanceReport() {
+    var entries = financeEntries();
+    var income = 0, expense = 0;
+    entries.forEach(function(e) { if (e.amount >= 0) income += e.amount; else expense += e.amount; });
+    var rows = entries.map(function(e) { return [e.date, e.source, e.type, (e.amount >= 0 ? '+' : '') + fmtR(e.amount), e.label]; });
+    var wrap = el('div', {});
+    wrap.appendChild(el('p', { text: 'Income: ' + fmtR(income) + '   ·   Expenses: ' + fmtR(Math.abs(expense)) + '   ·   Net: ' + fmtR(income + expense), style: 'font-weight:600;margin-bottom:10px;' }));
+    wrap.appendChild(rows.length ? simpleTable(['Date', 'Source', 'Type', 'Amount', 'Description'], rows) : emptyNote('No transactions recorded.'));
+    return wrap;
+  }
+  function buildComplianceReport() {
+    var rows = state.compliance.map(function(c) { return [c.name, c.category, c.dueDate, effectiveComplianceStatus(c), c.notes || '']; });
+    return rows.length ? simpleTable(['Item', 'Category', 'Due date', 'Status', 'Notes'], rows) : emptyNote('No compliance items tracked.');
+  }
+  function buildInspectionReport() {
+    var wrap = el('div', {});
+    var sorted = state.inspections.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    sorted.forEach(function(ins) {
+      var done = ins.items.filter(function(i) { return i.checked; }).length;
+      var card = el('div', { style: 'margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);' });
+      card.appendChild(el('p', { style: 'font-weight:600;', text: ins.title + ' — ' + ins.date + ' (' + done + '/' + ins.items.length + ' checked)' }));
+      if (ins.notes) card.appendChild(el('p', { text: ins.notes, style: 'font-size:13px;color:var(--ink-soft);margin-top:4px;' }));
+      wrap.appendChild(card);
+    });
+    if (sorted.length === 0) wrap.appendChild(emptyNote('No inspections recorded.'));
+    return wrap;
+  }
+  function buildSecurityReport() {
+    var wrap = el('div', {});
+    var sorted = state.securityChecks.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    sorted.forEach(function(sec) {
+      var done = sec.items.filter(function(i) { return i.checked; }).length;
+      var card = el('div', { style: 'margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);' });
+      card.appendChild(el('p', { style: 'font-weight:600;', text: sec.title + ' — ' + sec.date + ' (' + done + '/' + sec.items.length + ' checked)' }));
+      if (sec.notes) card.appendChild(el('p', { text: sec.notes, style: 'font-size:13px;color:var(--ink-soft);margin-top:4px;' }));
+      wrap.appendChild(card);
+    });
+    if (sorted.length === 0) wrap.appendChild(emptyNote('No security checks recorded.'));
+    return wrap;
+  }
+  function buildStockReport() {
+    var wrap = el('div', {});
+    wrap.appendChild(el('h4', { class: 'font-display', text: 'Current stock', style: 'font-size:14px;font-weight:600;margin-bottom:6px;' }));
+    wrap.appendChild(state.stockItems.length ? simpleTable(['Item', 'Quantity', 'Unit', 'Cost/unit'], state.stockItems.map(function(i) { return [i.name, i.quantity, i.unit, fmtR(i.costPerUnit)]; })) : emptyNote('No stock items.'));
+    wrap.appendChild(el('h4', { class: 'font-display', text: 'Movement log', style: 'font-size:14px;font-weight:600;margin:16px 0 6px;' }));
+    var moveRows = state.stockMoves.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); }).map(function(m) {
+      var item = state.stockItems.filter(function(i) { return i.id === m.itemId; })[0];
+      return [m.date, item ? item.name : 'Unknown', m.type, m.quantity, m.note || ''];
+    });
+    wrap.appendChild(moveRows.length ? simpleTable(['Date', 'Item', 'Type', 'Quantity', 'Note'], moveRows) : emptyNote('No movements logged.'));
+    return wrap;
+  }
+  function buildTraceabilityReport() {
+    var rows = state.animals.filter(function(a) { return a.tracking !== 'crop'; }).map(function(a) {
+      var sp = speciesById(a.speciesId);
+      var onFarm = (a.status !== 'sold' && a.status !== 'deceased');
+      return [a.id, a.name, sp.label, a.createdAt, onFarm ? 'On farm' : (a.status === 'sold' ? 'Sold off farm' : 'Deceased')];
+    });
+    return rows.length ? simpleTable(['ID', 'Name', 'Species', 'On farm since', 'Current status'], rows) : emptyNote('No animal records.');
+  }
+  function buildCropCareReport() {
+    var rows = [];
+    state.animals.forEach(function(a) {
+      var sp = speciesById(a.speciesId);
+      if (sp.tracking !== 'crop') return;
+      a.events.forEach(function(e) { rows.push([e.date, a.name, e.type, e.note]); });
+    });
+    rows.sort(function(a, b) { return new Date(b[0]) - new Date(a[0]); });
+    return rows.length ? simpleTable(['Date', 'Plot', 'Type', 'Note'], rows) : emptyNote('No crop care or harvest entries recorded yet.');
+  }
+
+  function printReport(title, contentEl) {
+    var printRoot = document.getElementById('print-root');
+    if (!printRoot) { printRoot = el('div', { id: 'print-root' }); document.body.appendChild(printRoot); }
+    printRoot.innerHTML = '';
+    printRoot.appendChild(el('h1', { class: 'font-display', text: title, style: 'font-size:22px;margin-bottom:4px;' }));
+    printRoot.appendChild(el('p', { text: state.farm.farmName + ' · Generated ' + todayStr(), style: 'color:#555;font-size:12px;margin-bottom:16px;' }));
+    printRoot.appendChild(contentEl.cloneNode(true));
+    document.body.classList.add('printing');
+    window.print();
+  }
+  window.onafterprint = function() { document.body.classList.remove('printing'); };
+
+  function openReportModal(title, buildFn) {
+    var overlay = el('div', { style: 'position:fixed;inset:0;background:rgba(35,43,34,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;' });
+    var modal = el('div', { class: 'card', style: 'width:100%;max-width:640px;padding:24px;max-height:88vh;overflow-y:auto;' });
+    var head = el('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;' });
+    head.appendChild(el('h3', { class: 'font-display', text: title, style: 'font-size:19px;font-weight:600;' }));
+    var closeBtn = el('button', { text: '×', style: 'background:none;border:none;font-size:22px;color:var(--ink-soft);' });
+    closeBtn.addEventListener('click', function() { overlay.remove(); });
+    head.appendChild(closeBtn);
+    modal.appendChild(head);
+    var content = el('div', {});
+    content.appendChild(buildFn());
+    modal.appendChild(content);
+    var btnRow = el('div', { style: 'display:flex;gap:10px;margin-top:18px;' });
+    var printBtn = el('button', { class: 'btn-primary', text: 'Print / Save as PDF' });
+    printBtn.addEventListener('click', function() { printReport(title, content); });
+    var closeBtn2 = el('button', { class: 'btn-outline', text: 'Close' });
+    closeBtn2.addEventListener('click', function() { overlay.remove(); });
+    btnRow.appendChild(printBtn); btnRow.appendChild(closeBtn2);
+    modal.appendChild(btnRow);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  }
+
+  function renderReportsPage() {
+    var REPORTS = [
+      { label: 'Headcount summary', desc: 'Total animals and flocks by species, current status breakdown.', build: buildHeadcountReport },
+      { label: 'Health & breeding log', desc: 'Every vaccination, treatment and breeding event, in order.', build: buildHealthBreedingReport },
+      { label: 'Production summary', desc: 'Milk, wool, eggs and growth records over the selected period.', build: buildProductionReport },
+      { label: 'Income & expense statement', desc: 'Full farm profit and loss, exportable for record-keeping.', build: buildFinanceReport },
+      { label: 'Compliance status', desc: 'Every compliance item, its status and due date, in one place.', build: buildComplianceReport },
+      { label: 'Inspection history', desc: 'Every completed inspection with its checklist and notes.', build: buildInspectionReport },
+      { label: 'Security check history', desc: 'Every completed security check — fencing, gates, alarms and cameras.', build: buildSecurityReport },
+      { label: 'Stock & movement log', desc: 'Stock levels and every stock-in / stock-out movement recorded.', build: buildStockReport },
+      { label: 'Movement & traceability', desc: 'Animal on/off-farm status, for compliance records.', build: buildTraceabilityReport },
+      { label: 'Crop care & harvest log', desc: 'Every planting, care, treatment and harvest entry across all plots.', build: buildCropCareReport }
+    ];
+    var wrap = el('div', {});
+    wrap.appendChild(pageHeader('Whole farm', 'Reports', 'Generate a report from your current records, then print it or save it as a PDF to keep or share.'));
+    var grid = el('div', { style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;' });
+    REPORTS.forEach(function(r) {
+      var c = el('div', { class: 'card', style: 'padding:18px;' });
+      c.appendChild(el('p', { class: 'font-display', text: r.label, style: 'font-weight:600;margin-bottom:6px;' }));
+      c.appendChild(el('p', { text: r.desc, style: 'color:var(--ink-soft);font-size:13px;margin-bottom:14px;' }));
+      var btn = el('button', { class: 'btn-secondary', text: 'Generate report', style: 'font-size:13px;' });
+      btn.addEventListener('click', function() { openReportModal(r.label, r.build); });
+      c.appendChild(btn);
+      grid.appendChild(c);
+    });
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  // ---------- Settings ----------
+  function renderSettingsPage() {
+    var wrap = el('div', {});
+    wrap.appendChild(pageHeader('Farm setup', 'Settings', 'Farm details, which species you track, and your data.'));
+
+    var detailsCard = el('div', { class: 'card', style: 'padding:18px;margin-bottom:20px;max-width:480px;' });
+    detailsCard.appendChild(el('h3', { class: 'font-display', text: 'Farm details', style: 'font-size:16px;font-weight:600;margin-bottom:12px;' }));
+    var form = el('form', { style: 'display:flex;flex-direction:column;gap:12px;' });
+    var nameInput = el('input', {}); nameInput.value = state.farm.farmName;
+    var ownerInput = el('input', {}); ownerInput.value = state.farm.ownerName;
+    form.appendChild(el('div', {}, [el('label', { text: 'Farm name', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), nameInput]));
+    form.appendChild(el('div', {}, [el('label', { text: 'Owner / manager', style: 'display:block;font-size:13px;font-weight:500;margin-bottom:5px;' }), ownerInput]));
+    var saveBtn = el('button', { type: 'submit', class: 'btn-primary', text: 'Save details', style: 'align-self:flex-start;' });
+    form.appendChild(saveBtn);
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      state.farm.farmName = nameInput.value.trim() || state.farm.farmName;
+      state.farm.ownerName = ownerInput.value.trim() || state.farm.ownerName;
+      render();
+    });
+    detailsCard.appendChild(form);
+    wrap.appendChild(detailsCard);
+
+    var spCard = el('div', { class: 'card', style: 'padding:18px;margin-bottom:20px;' });
+    spCard.appendChild(el('h3', { class: 'font-display', text: 'What you raise & grow', style: 'font-size:16px;font-weight:600;margin-bottom:4px;' }));
+    spCard.appendChild(el('p', { text: 'Turn off anything you don\u2019t keep. Existing records stay saved, just hidden from the menu.', style: 'font-size:13px;color:var(--ink-soft);margin-bottom:12px;' }));
+
+    function enterpriseToggleGrid(list) {
+      var grid = el('div', { style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;' });
+      list.forEach(function(sp) {
+        var active = state.farm.speciesIds.indexOf(sp.id) > -1;
+        var count = state.animals.filter(function(a) { return a.speciesId === sp.id; }).length;
+        var btn = el('button', { style: 'display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;border:1px solid ' + (active ? 'var(--primary)' : 'var(--border)') + ';background:' + (active ? 'rgba(47,74,56,0.08)' : '#fff') + ';text-align:left;' });
+        btn.appendChild(el('span', { text: sp.icon, style: 'font-size:18px;' }));
+        var textWrap = el('div', {});
+        textWrap.appendChild(el('p', { text: sp.label, style: 'font-size:13px;font-weight:600;' }));
+        textWrap.appendChild(el('p', { text: active ? 'Tracking' : (count > 0 ? count + ' record(s) hidden' : 'Not tracked'), style: 'font-size:11px;color:var(--ink-soft);' }));
+        btn.appendChild(textWrap);
+        btn.addEventListener('click', function() {
+          if (active) {
+            if (count > 0 && !window.confirm('Hide ' + sp.label + '? Its ' + count + ' record(s) will stay saved but won\u2019t show in the menu until you turn it back on.')) return;
+            state.farm.speciesIds = state.farm.speciesIds.filter(function(id) { return id !== sp.id; });
+          } else {
+            state.farm.speciesIds.push(sp.id);
+          }
+          render();
+        });
+        grid.appendChild(btn);
+      });
+      return grid;
+    }
+
+    spCard.appendChild(el('p', { class: 'eyebrow', text: 'Livestock', style: 'margin-bottom:8px;' }));
+    spCard.appendChild(enterpriseToggleGrid(SPECIES));
+    spCard.appendChild(el('p', { class: 'eyebrow', text: 'Crops', style: 'margin:16px 0 8px;' }));
+    spCard.appendChild(enterpriseToggleGrid(CROPS));
+    wrap.appendChild(spCard);
+
+    var dataCard = el('div', { class: 'card', style: 'padding:18px;' });
+    dataCard.appendChild(el('h3', { class: 'font-display', text: 'Your data', style: 'font-size:16px;font-weight:600;margin-bottom:4px;' }));
+    dataCard.appendChild(el('p', { text: 'Everything you enter is saved automatically to your account. Keep a backup file whenever you like.', style: 'font-size:13px;color:var(--ink-soft);margin-bottom:14px;' }));
+    var dataBtns = el('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;' });
+    var exportBtn = el('button', { class: 'btn-outline', text: 'Export backup (.json)' });
+    exportBtn.addEventListener('click', function() {
+      var blob = new Blob([JSON.stringify(serializableState(), null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = url; a.download = (state.farm.farmName || 'farm').replace(/\s+/g, '-').toLowerCase() + '-backup-' + todayStr() + '.json';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+    var importLabel = el('label', { class: 'btn-outline', text: 'Import backup (.json)', style: 'display:inline-block;' });
+    var importInput = el('input', { type: 'file', accept: 'application/json', style: 'display:none;' });
+    importLabel.appendChild(importInput);
+    importInput.addEventListener('change', function(e) {
+      var file = e.target.files[0]; if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function() {
+        try {
+          var data = JSON.parse(reader.result);
+          if (!window.confirm('Replace all current data with this backup?')) return;
+          Object.assign(state, data);
+          render();
+        } catch (err) { alert('That file could not be read as a farm backup.'); }
+      };
+      reader.readAsText(file);
+    });
+    var resetBtn = el('button', { class: 'btn-outline', text: 'Clear all data', style: 'color:var(--alert);border-color:rgba(166,67,47,0.4);' });
+    resetBtn.addEventListener('click', function() {
+      if (!window.confirm('This clears everything you\u2019ve entered and starts fresh. Continue?')) return;
+      state.counters = {};
+      state.farm.speciesIds = DEFAULT_SPECIES_IDS.slice();
+      var seed = seedData(DEFAULT_SPECIES_IDS);
+      state.animals = seed.animals; state.issues = seed.issues; state.compliance = seed.compliance;
+      state.inspections = seed.inspections; state.securityChecks = seed.securityChecks; state.stockItems = seed.stockItems; state.stockMoves = seed.stockMoves;
+      state.farmFinance = seed.farmFinance;
+      state.workers = seed.workers; state.contacts = seed.contacts; state.grazingLogs = seed.grazingLogs;
+      state.waterLogs = seed.waterLogs; state.loadSheddingLogs = seed.loadSheddingLogs;
+      render();
+    });
+    dataBtns.appendChild(exportBtn); dataBtns.appendChild(importLabel); dataBtns.appendChild(resetBtn);
+    dataCard.appendChild(dataBtns);
+    wrap.appendChild(dataCard);
+
+    return wrap;
+  }
+
+  function addDemoVegetablePlots() {
+    state.animals.push({
+      id: nextId('veg'), speciesId: 'vegetables', tracking: 'crop', createdAt: '2026-06-01',
+      name: 'Tomato bed 2', breed: 'Roma', count: 3, status: 'growing', yieldKg: null,
+      events: [
+        { id: nextId('evt'), date: '2026-07-10', type: 'care', note: 'Fertilised with compost, staked plants' },
+        { id: nextId('evt'), date: '2026-06-20', type: 'care', note: 'Transplanted seedlings' }
+      ],
+      finance: [{ id: nextId('fin'), date: '2026-06-15', type: 'expense', label: 'Seedlings and compost', amount: -260 }]
+    });
+    state.animals.push({
+      id: nextId('veg'), speciesId: 'vegetables', tracking: 'crop', createdAt: '2026-06-01',
+      name: 'Spinach bed 1', breed: 'Swiss chard', count: 2, status: 'ready', yieldKg: 18,
+      events: [{ id: nextId('evt'), date: '2026-08-02', type: 'harvest', note: 'First harvest — 18kg, sold at local market' }],
+      finance: [{ id: nextId('fin'), date: '2026-08-02', type: 'income', label: 'Spinach sold at market', amount: 340 }]
+    });
+  }
+
+  // ---------- Boot ----------
+  setIndicator('loading');
+  loadState().then(function(found) {
+    if (!found) {
+      var seed = seedData(state.farm.speciesIds);
+      state.animals = seed.animals; state.issues = seed.issues; state.compliance = seed.compliance;
+      state.inspections = seed.inspections; state.securityChecks = seed.securityChecks; state.stockItems = seed.stockItems; state.stockMoves = seed.stockMoves;
+      state.farmFinance = seed.farmFinance;
+      state.workers = seed.workers; state.contacts = seed.contacts; state.grazingLogs = seed.grazingLogs;
+      state.waterLogs = seed.waterLogs; state.loadSheddingLogs = seed.loadSheddingLogs;
+    }
+    if (!state.securityChecks) state.securityChecks = [];
+    if (!state.meta) state.meta = {};
+    if (!state.workers) state.workers = [];
+    if (!state.contacts) state.contacts = [];
+    if (!state.grazingLogs) state.grazingLogs = [];
+    if (!state.waterLogs) state.waterLogs = [];
+    if (!state.loadSheddingLogs) state.loadSheddingLogs = [];
+    render();
+    fetchWeather();
+  });
+})();
+</script>
+</body>
+</html>
