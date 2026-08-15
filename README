@@ -1,0 +1,64 @@
+# Smart Design — Farm Management Dashboard (Demo)
+
+A farm management dashboard built for local farmers and small-to-medium agribusinesses — livestock, crops, finances, compliance, inspections, security checks, and more, all in one place.
+
+This is a **demo build**. Every visitor sees the same clean, empty starting point so they can click around and get a feel for it. Once someone's interested, the real version gets tailored and built specifically around their farm.
+
+---
+
+## 🚀 Deploying this (GitHub → Vercel)
+
+### Step 1 — Get it on GitHub
+1. Go to [github.com](https://github.com) and log in (or create a free account).
+2. Click **New repository** (green button, top right).
+3. Name it something like `smart-design-demo`, leave it **Public**, then click **Create repository**.
+4. On the next page, click **uploading an existing file**, drag in the HTML file (the one named something like `farm-ledger-clean-demo.html`), and rename it to exactly **`index.html`** during upload — this matters, it's what tells hosting services which file to open first.
+5. Click **Commit changes**.
+
+### Step 2 — Deploy on Vercel
+1. Go to [vercel.com](https://vercel.com) and sign up/log in **using your GitHub account** — this connects the two automatically.
+2. Click **Add New... → Project**.
+3. Find and select the `smart-design-demo` repository, then click **Import**.
+4. Leave every setting on default (there's no build step — it's a single plain HTML file) and click **Deploy**.
+5. Within a minute, Vercel gives you a live link like `smart-design-demo.vercel.app` — that's the link you send people.
+
+From now on, any time you upload a new version of the file to GitHub, Vercel automatically updates the live link for you — no re-deploying by hand.
+
+### Alternative — even faster, no GitHub needed
+Go to [app.netlify.com/drop](https://app.netlify.com/drop) and drag the HTML file straight onto the page. You'll get a live link in about 20 seconds. Good for getting a link out today; set up the GitHub + Vercel version above when you have a few extra minutes, since it's easier to update later.
+
+---
+
+## ⚠️ Important things to know before sharing the link
+
+- **Nothing saves between visits.** The auto-save feature only works while this file is opened inside Claude.ai — it relies on a storage feature that doesn't exist once the file is hosted on its own. Once it's live on your Vercel/Netlify link, every visitor gets the same fresh, empty version, and anything they click or type disappears if they refresh. This is expected and fine for a demo — just don't be surprised by it.
+- **There's no backend, database, or login** — it's a single static webpage. That also means there's nothing to secure, patch, or maintain. It's simply safe to share widely.
+- **The live weather widget will ask for the visitor's location.** If they say no, it quietly falls back to a default forecast instead of breaking.
+- This is a **pitch/demo**, not the finished product. See the conversation with Claude (or your own notes) for the difference between this and a real, production-ready build with accounts and real data storage.
+
+---
+
+## What's inside
+
+- **Dashboard** — daily overview, insight chips, live weather, quick actions, enterprise tiles, charts
+- **Livestock** — Cattle, Sheep, Goats, Pigs, Chickens, Ducks
+- **Crops** — Vegetables, Maize, Fruit trees
+- **Issues** — including theft/security categories with case number tracking
+- **Compliance** — with South African compliance presets (brand registration, red meat levy, quarantine)
+- **Inspections** & **Security checks** — customisable checklists
+- **Stock control** — inventory and stock movements
+- **Finances** — income/expense tracking and cash flow
+- **Insights** — activity, health status, and cash flow charts
+- **Reports** — printable/PDF-ready reports
+- **Farm records** — workers, contacts, grazing camps, water/rainfall, load shedding
+- **Settings** — farm details, toggle which livestock/crops you track, backup & restore
+
+---
+
+## Contact
+
+**Brad — Smart Design**
+📲 WhatsApp: 068 987 1999
+📧 Email: smartdesignbc@gmail.com
+
+This demo is the starting point. Message us and let's build the version that fits your farm.
