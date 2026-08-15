@@ -364,7 +364,7 @@
       wrap.appendChild(item);
       if (i < daily.time.length - 1) wrap.appendChild(el('span', { text: '·', style: 'color:var(--border);flex-shrink:0;' }));
     });
-    if (weatherState.locationLabel) wrap.appendChild(el('span', { text: weatherState.locationLabel, style: 'font-size:11px;color:var(--ink-soft);margin-left:auto;flex-shrink:0;white-space:nowrap;' }));
+    if (weatherState.locationLabel) wrap.appendChild(el('span', { text: weatherState.locationLabel, style: 'font-size:11px;color:var(--ink-soft);flex-shrink:0;white-space:nowrap;padding-left:8px;' }));
     return wrap;
   }
 
@@ -2254,16 +2254,18 @@
 
   // ---------- Reports ----------
   function simpleTable(headers, rows) {
-    var table = el('table', { style: 'width:100%;border-collapse:collapse;font-size:13px;' });
+    var scrollWrap = el('div', { style: 'overflow-x:auto;-webkit-overflow-scrolling:touch;' });
+    var table = el('table', { style: 'width:100%;min-width:480px;border-collapse:collapse;font-size:13px;' });
     var thead = el('tr', {});
-    headers.forEach(function(h) { thead.appendChild(el('th', { text: h, style: 'text-align:left;padding:8px 6px;border-bottom:2px solid var(--border);font-size:11px;text-transform:uppercase;color:var(--ink-soft);' })); });
+    headers.forEach(function(h) { thead.appendChild(el('th', { text: h, style: 'text-align:left;padding:8px 6px;border-bottom:2px solid var(--border);font-size:11px;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;' })); });
     table.appendChild(thead);
     rows.forEach(function(r) {
       var tr = el('tr', {});
       r.forEach(function(c) { tr.appendChild(el('td', { text: String(c), style: 'padding:7px 6px;border-bottom:1px solid var(--border);' })); });
       table.appendChild(tr);
     });
-    return table;
+    scrollWrap.appendChild(table);
+    return scrollWrap;
   }
   function emptyNote(text) { return el('p', { text: text, style: 'color:var(--ink-soft);font-size:13px;' }); }
 
