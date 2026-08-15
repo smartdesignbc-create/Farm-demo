@@ -399,11 +399,24 @@
 
   function navigate(view) { state.view = view; state.menuOpen = false; render(); }
 
+  function refreshNavFade() {
+    var scrollEl = document.getElementById('nav-scroll');
+    var fadeEl = document.getElementById('nav-fade');
+    if (!scrollEl || !fadeEl) return;
+    var hasOverflow = scrollEl.scrollWidth > scrollEl.clientWidth + 2;
+    var atEnd = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 2;
+    fadeEl.style.opacity = (hasOverflow && !atEnd) ? '1' : '0';
+  }
+  window.addEventListener('resize', refreshNavFade);
+
   function render() {
     var root = document.getElementById('root');
     root.innerHTML = '';
     root.appendChild(renderApp());
     scheduleSave();
+    var scrollEl = document.getElementById('nav-scroll');
+    if (scrollEl) scrollEl.onscroll = refreshNavFade;
+    setTimeout(refreshNavFade, 0);
   }
 
   function simpleTabBar(tabs, active, onSelect) {
@@ -450,7 +463,7 @@
     headerRow.appendChild(brand);
     header.appendChild(headerRow);
 
-    var navBar = el('div', { style: 'overflow-x:auto;padding:0 14px 12px;' });
+    var navBar = el('div', { id: 'nav-scroll', style: 'overflow-x:auto;padding:0 14px 12px;-webkit-overflow-scrolling:touch;' });
     var navInner = el('div', { style: 'max-width:1132px;margin:0 auto;display:flex;gap:6px;' });
     functionalNavItems().forEach(function(item) {
       var active = state.view.page === item.page;
@@ -461,7 +474,13 @@
       navInner.appendChild(b);
     });
     navBar.appendChild(navInner);
-    header.appendChild(navBar);
+
+    var navWrapOuter = el('div', { style: 'position:relative;' });
+    navWrapOuter.appendChild(navBar);
+    var navFade = el('div', { id: 'nav-fade', style: 'position:absolute;top:0;right:0;bottom:12px;width:34px;background:linear-gradient(to right, rgba(30,50,38,0), var(--primary-dark) 65%);pointer-events:none;opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:flex-end;' });
+    navFade.appendChild(el('span', { text: '\u203a', style: 'color:var(--parchment);font-size:18px;padding-right:6px;' }));
+    navWrapOuter.appendChild(navFade);
+    header.appendChild(navWrapOuter);
 
     shell.appendChild(header);
 
